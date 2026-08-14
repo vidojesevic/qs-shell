@@ -23,7 +23,7 @@ Scope {
 		body: n.body,
 		appName: n.appName,
 		urgency: n.urgency,
-		time: Qt.formatDateTime(new Date(), "HH:mm"),
+		time: Qt.formatDateTime(new Date(), "HH:mm:ss"),
 		appIcon: n.appIcon,
 		image: n.image
 	    })

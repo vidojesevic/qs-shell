@@ -24,17 +24,25 @@ Scope {
     PanelWindow {
 	visible: root.centerOpen
 	anchors { top: true; right: true }
-	margins { top: 32; right: 12 }
+	margins { top: 48; right: 18 }
 
 	color: "transparent"
 	implicitWidth: 380
-	implicitHeight: centerCol.implicitHeight + 24
+	// implicitHeight: centerCol.implicitHeight + 24
+	implicitHeight: 600
+	// implicitHeight: Math.min(600, centerCol.implicitHeight + 24)
 	exclusionMode: ExclusionMode.Ignore
+
+
+	Timer {
+	    interval: 10000
+	    running: true
+	    onTriggered: root.centerOpen = false
+	}
 
 	Rectangle {
 	    anchors.fill: parent
-	    radius: 10
-	    border.width: 2
+	    border.width: 1
 	    color: Config.colors.background
 	    border.color: Config.colors.purple
 
@@ -58,18 +66,26 @@ Scope {
 
 		    Text {
 			text: "Clear all"
-			visible: history.count > 0
+			visible: historyModel.count > 0
 			color: Config.colors.red
 
 			MouseArea {
 			    anchors.fill: parent
-			    onClicked: history.clear()
+			    onClicked: historyModel.clear()
 			}
 		    }
 		}
 
-		Repeater {
-		    model: history
+		ListView {
+		    id: notificationList
+
+		    Layout.fillWidth: true
+		    Layout.fillHeight: true
+
+		    clip: true
+		    spacing: 8
+
+		    model: historyModel
 
 		    delegate: Rectangle {
 			required property int index
@@ -79,15 +95,16 @@ Scope {
 			required property int urgency
 			required property string time
 
-			Layout.fillWidth: true
-			Layout.preferredHeight: 60
+			// Layout.fillWidth: true
+			// Layout.preferredHeight: 60
+			width: notificationList.width
+			height: 60
 
-			radius: 8
 			color: Config.colors.background
-			border.width: 2
+			border.width: 1
 			border.color: urgency === NotificationUrgency.Critical
-			? Config.colors.red
-			: Config.colors.purple
+			    ? Config.colors.red
+			    : Config.colors.purple
 
 			RowLayout { 
 			    anchors.fill: parent
@@ -121,37 +138,39 @@ Scope {
 					font.family: Config.bar.fontFamily
 					MouseArea {
 					    anchors.fill: parent
-					    onClicked: history.remove(index)
+					    onClicked: historyModel.remove(index)
 					}
 				    }
 				}
 
-				Text {
+				RowLayout {
 				    Layout.fillWidth: true
-				    text: body
-				    visible: body !== ""
-				    color: Config.colors.foreground
-				    wrapMode: Text.WordWrap
-				    font.family: Config.bar.fontFamily
-				    font.pixelSize: Config.bar.fontSize - 2
-				    elide: Text.ElideRight
-				}
+				    spacing: 6
+				    Text {
+					Layout.fillWidth: true
+					text: body
+					visible: body !== ""
+					color: Config.colors.foreground
+					wrapMode: Text.NoWrap
+					font.family: Config.bar.fontFamily
+					font.pixelSize: Config.bar.fontSize - 2
+					elide: Text.ElideRight
+				    }
 
-				Text {
-				    visible: appName !== ""
-				    text: appName
-				    color: Config.colors.foreground
-				    font.family: Config.bar.fontFamily
-				    font.pixelSize: Config.bar.fontSize - 2
-				    // text: time
-				    // color: Config.colors.foreground
+				    Text {
+					visible: appName !== ""
+					text: appName
+					color: Config.colors.foreground
+					font.family: Config.bar.fontFamily
+					font.pixelSize: Config.bar.fontSize - 2
+				    }
 				}
 			    }
 			}
 
 			MouseArea {
 			    anchors.fill: parent
-			    onClicked: history.remove(index)
+			    onClicked: historyModel.remove(index)
 			}
 		    }
 		}

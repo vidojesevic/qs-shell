@@ -11,13 +11,13 @@ Scope {
     property var notificationServer
     PanelWindow {
 	anchors {
-	    top: true
+	    bottom: true
 	    right: true
 	}
 
 	margins {
-	    top: 32
-	    right: 12
+	    bottom: 16
+	    right: 16
 	}
 
 	color: "transparent"
@@ -42,7 +42,6 @@ Scope {
 		    Layout.fillWidth: true
 		    Layout.preferredHeight: 60
 
-		    radius: 8
 		    color: Config.colors.background
 		    border.width: 2
 		    border.color:
@@ -127,6 +126,21 @@ Scope {
 				font.pixelSize: Config.bar.fontSize - 2
 
 				wrapMode: Text.WordWrap
+			    }
+
+			    Image {
+				Layout.preferredWidth: 36
+				Layout.preferredHeight: 36
+				Layout.alignment: Qt.AlignTop
+
+				fillMode: Image.PreserveAspectFit
+
+				source:
+				card.modelData.image
+				|| card.modelData.image
+				|| ""
+
+				visible: source.toString() !== ""
 			    }
 			}
 		    }

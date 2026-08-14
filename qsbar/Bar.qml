@@ -87,11 +87,12 @@ Variants {
 	    Rectangle {
 		Layout.alignment: Qt.AlignVCenter
 
-		implicitWidth: 210
+		implicitWidth: clock.implicitWidth + 16
 		implicitHeight: 24
 
 		radius: 3
 		color: Theme.Theme.background
+
 		Text {
 		    id: clock
 
@@ -107,6 +108,9 @@ Variants {
 			pixelSize: Theme.Theme.fontSize
 			bold: true
 		    }
+
+		    horizontalAlignment: Text.AlignHCenter
+		    verticalAlignment: Text.AlignVCenter
 
 		    Timer {
 			interval: 1000
