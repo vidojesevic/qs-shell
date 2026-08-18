@@ -129,7 +129,6 @@ Scope {
 					text: time
 					color: Config.colors.foreground
 					font.pixelSize: Config.bar.fontSize - 3
-					font.family: Config.bar.fontFamily
 				    }
 				    Text {
 					text: "x"
