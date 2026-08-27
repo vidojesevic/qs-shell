@@ -6,7 +6,7 @@ import QtQuick
 import QtQuick.Layouts
 
 import "widgets"
-import "themes" as Theme
+import "../config.js" as Config
 
 Variants {
     model: Quickshell.screens
@@ -36,6 +36,10 @@ Variants {
 	property int wsStart: screen.name === "HDMI-A-2" ? 1 : 10
 	property int wsCount: screen.name === "HDMI-A-2" ? 9 : 5
 
+	// Vladin monitori
+	// property int wsStart: screen.name === "DP-3" ? 1 : 10
+	// property int wsCount: screen.name === "DP-3" ? 9 : 5
+
 	anchors {
 	    top: true
 	    left: true
@@ -58,8 +62,8 @@ Variants {
 		implicitWidth: workspaceRow.implicitWidth + 16
 		implicitHeight: 24
 
-		radius: 3
-		color: Theme.Theme.background
+		// radius: 3
+		color: Config.colors.background
 
 		RowLayout {
 		    id: workspaceRow
@@ -90,13 +94,14 @@ Variants {
 		implicitWidth: clock.implicitWidth + 16
 		implicitHeight: 24
 
-		radius: 3
-		color: Theme.Theme.background
-
+		// radius: 3
+		color: Config.colors.background
 		Text {
 		    id: clock
 
-		    color: Theme.Theme.blue
+		    anchors.fill: parent
+
+		    color: Config.colors.blue
 
 		    text: " " + Qt.formatDateTime(
 			new Date(),
@@ -104,9 +109,10 @@ Variants {
 		    )
 
 		    font {
-			family: Theme.Theme.fontFamily
-			pixelSize: Theme.Theme.fontSize
+			family: Config.bar.fontFamily
+			pixelSize: Config.bar.fontSize
 			bold: true
+
 		    }
 
 		    horizontalAlignment: Text.AlignHCenter
@@ -138,8 +144,8 @@ Variants {
 		implicitWidth: systemRow.implicitWidth + 16
 		implicitHeight: 24
 
-		radius: 3
-		color: Theme.Theme.background
+		// radius: 3
+		color: Config.colors.background
 
 		RowLayout {
 		    id: systemRow
@@ -150,11 +156,11 @@ Variants {
 		    // CPU
 		    Text {
 			text: "󰍛 " + root.cpuUsage + "%"
-			color: Theme.Theme.yellow
+			color: Config.colors.yellow
 
 			font {
-			    family: Theme.Theme.fontFamily
-			    pixelSize: Theme.Theme.fontSize
+			    family: Config.bar.fontFamily
+			    pixelSize: Config.bar.fontSize
 			    bold: true
 			}
 
@@ -205,17 +211,17 @@ Variants {
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
-			color: Theme.Theme.muted
+			color: Config.colors.muted
 		    }
 
 		    // Memory
 		    Text {
 			text: " " + root.memUsage + "%"
-			color: Theme.Theme.cyan
+			color: Config.colors.cyan
 
 			font {
-			    family: Theme.Theme.fontFamily
-			    pixelSize: Theme.Theme.fontSize
+			    family: Config.bar.fontFamily
+			    pixelSize: Config.bar.fontSize
 			    bold: true
 			}
 
@@ -251,7 +257,7 @@ Variants {
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
-			color: Theme.Theme.muted
+			color: Config.colors.muted
 		    }
 
 		    KeyboardLayout {}
@@ -259,7 +265,7 @@ Variants {
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
-			color: Theme.Theme.muted
+			color: Config.colors.muted
 		    }
 
 		    // Weather
@@ -267,11 +273,11 @@ Variants {
 			id: weatherText
 
 			text: root.weather
-			color: Theme.Theme.yellow
+			color: Config.colors.yellow
 
 			font {
-			    family: Theme.Theme.fontFamily
-			    pixelSize: Theme.Theme.fontSize
+			    family: Config.bar.fontFamily
+			    pixelSize: Config.bar.fontSize
 			    bold: true
 			}
 
@@ -317,7 +323,7 @@ Variants {
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
-			color: Theme.Theme.muted
+			color: Config.colors.muted
 		    }
 
 		    Bluetooth {}
@@ -325,7 +331,7 @@ Variants {
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
-			color: Theme.Theme.muted
+			color: Config.colors.muted
 		    }
 
 		    Volume {}
@@ -333,11 +339,21 @@ Variants {
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
-			color: Theme.Theme.muted
+			color: Config.colors.muted
 		    }
 
 		    // Wi-Fi
 		    WiFi {}
+
+		    Rectangle {
+			implicitWidth: 1
+			implicitHeight: 16
+			color: Config.colors.muted
+		    }
+
+		    Session {
+			targetScreen: root.screen
+		    }
 		}
 	    }
 	}

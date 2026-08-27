@@ -1,7 +1,7 @@
 import Quickshell.Io
 import QtQuick
 
-import "../themes" as Themes
+import "../../config.js" as Config
 
 Text {
     id: root
@@ -9,11 +9,11 @@ Text {
     property string keyLayout: "Eng"
 
     text: "󰌌 " + root.keyLayout
-    color: Themes.Theme.blue
+    color: Config.colors.blue
 
     font {
-        family: Themes.Theme.fontFamily
-        pixelSize: Themes.Theme.fontSize
+        family: Config.bar.fontFamily
+        pixelSize: Config.bar.fontSize
         bold: true
     }
 

@@ -1,7 +1,7 @@
 import Quickshell.Hyprland
 import QtQuick
 
-import "../themes" as Themes
+import "../../config.js" as Config
 
 Text {
     id: root
@@ -24,12 +24,12 @@ Text {
     text: root.wsId
 
     color: root.isActive
-        ? Themes.Theme.cyan
-        : (root.ws ? Themes.Theme.blue : Themes.Theme.muted)
+        ? Config.colors.cyan
+        : (root.ws ? Config.colors.blue : Config.colors.muted)
 
     font {
-        family: Themes.Theme.fontFamily
-        pixelSize: Themes.Theme.fontSize
+        family: Config.bar.fontFamily
+        pixelSize: Config.bar.fontSize
         bold: true
     }
 

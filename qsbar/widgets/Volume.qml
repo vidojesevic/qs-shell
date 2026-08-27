@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../themes" as Themes
+import "../../config.js" as Config
 
 Text {
     id: volumeRoot
@@ -16,11 +16,11 @@ Text {
     ? "󰖁 " + volumePercent + "%"
     : "󰕾 " + volumePercent + "%"
 
-    color: Themes.Theme.yellow
+    color: Config.colors.yellow
 
     font {
-	family: Themes.Theme.fontFamily
-	pixelSize: Themes.Theme.fontSize
+	family: Config.bar.fontFamily
+	pixelSize: Config.bar.fontSize
 	bold: true
     }
 
@@ -182,9 +182,9 @@ Text {
 	    anchors.fill: parent
 
 	    radius: 6
-	    color: Themes.Theme.background
+	    color: Config.colors.background
 	    border.width: 1
-	    border.color: Themes.Theme.muted
+	    border.color: Config.colors.muted
 
 	    RowLayout {
 		anchors {
@@ -200,12 +200,12 @@ Text {
 		Text {
 		    text: volumeRoot.muted ? "󰖁" : "󰕾"
 		    color: volumeRoot.muted
-		    ? Themes.Theme.muted
-		    : Themes.Theme.yellow
+		    ? Config.colors.muted
+		    : Config.colors.yellow
 
 		    font {
-			family: Themes.Theme.fontFamily
-			pixelSize: Themes.Theme.fontSize + 2
+			family: Config.bar.fontFamily
+			pixelSize: Config.bar.fontSize + 2
 			bold: true
 		    }
 
@@ -250,11 +250,11 @@ Text {
 		    horizontalAlignment: Text.AlignRight
 
 		    text: Math.round(volumeSlider.value) + "%"
-		    color: Themes.Theme.foreground
+		    color: Config.colors.foreground
 
 		    font {
-			family: Themes.Theme.fontFamily
-			pixelSize: Themes.Theme.fontSize
+			family: Config.bar.fontFamily
+			pixelSize: Config.bar.fontSize
 			bold: true
 		    }
 		}
