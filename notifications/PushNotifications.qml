@@ -40,7 +40,7 @@ Scope {
 		    required property var modelData
 
 		    Layout.fillWidth: true
-		    Layout.preferredHeight: 60
+		    implicitHeight: cardRow.implicitHeight + 20
 
 		    color: Config.colors.background
 		    border.width: 2
@@ -61,6 +61,8 @@ Scope {
 		    }
 
 		    RowLayout {
+			id: cardRow
+
 			anchors.fill: parent
 			anchors.margins: 10
 			spacing: 10
@@ -118,6 +120,8 @@ Scope {
 
 			    Text {
 				Layout.fillWidth: true
+				Layout.preferredHeight: contentHeight
+
 				text: card.modelData.body
 				visible: text !== ""
 
@@ -126,21 +130,6 @@ Scope {
 				font.pixelSize: Config.bar.fontSize - 2
 
 				wrapMode: Text.WordWrap
-			    }
-
-			    Image {
-				Layout.preferredWidth: 36
-				Layout.preferredHeight: 36
-				Layout.alignment: Qt.AlignTop
-
-				fillMode: Image.PreserveAspectFit
-
-				source:
-				card.modelData.image
-				|| card.modelData.image
-				|| ""
-
-				visible: source.toString() !== ""
 			    }
 			}
 		    }

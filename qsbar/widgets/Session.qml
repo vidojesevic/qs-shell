@@ -132,6 +132,12 @@ Text {
                         Repeater {
                             model: [
                                 {
+                                    icon: "󰤄",
+                                    label: "Suspend",
+                                    accent: Config.colors.blue,
+                                    command: ["loginctl", "suspend"]
+                                },
+                                {
                                     icon: "󰍃",
                                     label: "Logout",
                                     accent: Config.colors.purple,

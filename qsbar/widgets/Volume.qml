@@ -11,263 +11,492 @@ Text {
 
     property int volumePercent: 0
     property bool muted: false
+    property string defaultSink: ""
 
     text: muted
-    ? "󰖁 " + volumePercent + "%"
-    : "󰕾 " + volumePercent + "%"
+        ? "󰖁 " + volumePercent + "%"
+        : "󰕾 " + volumePercent + "%"
 
     color: Config.colors.yellow
 
     font {
-	family: Config.bar.fontFamily
-	pixelSize: Config.bar.fontSize
-	bold: true
+        family: Config.bar.fontFamily
+        pixelSize: Config.bar.fontSize
+        bold: true
     }
-
-    function refreshVolume() {
-	if (!volumeProc.running)
-	volumeProc.running = true
-    }
-
-    property int requestedVolume: 0
 
     function setVolume(value) {
-	requestedVolume = Math.round(
-	    Math.max(0, Math.min(100, value))
-	)
+        if (defaultSink.length === 0)
+            return
 
-	setVolumeTimer.restart()
+        volumeRoot.volumePercent = Math.round(
+            Math.max(0, Math.min(100, value))
+        )
+
+        applyGuard.restart()
+        applyTimer.restart()
     }
 
+    function toggleMute() {
+        if (defaultSink.length === 0)
+            return
+
+        Quickshell.execDetached([
+            "pactl", "set-sink-mute", defaultSink, "toggle"
+        ])
+
+        refreshTimer.restart()
+        sinkProc.running = true
+    }
+
+    /*
+     * Switch output: make the sink default, then move every playing
+     * stream onto it, the way pavucontrol does.
+     */
+    function selectSink(name) {
+        Quickshell.execDetached([
+            "sh",
+            "-c",
+            "pactl set-default-sink \"$1\"; "
+            + "for input in $(pactl list short sink-inputs | cut -f1); do "
+            + "pactl move-sink-input \"$input\" \"$1\"; "
+            + "done",
+            "_",
+            name
+        ])
+
+        switchRefreshTimer.restart()
+    }
+
+    /*
+     * Ignore poll results for a moment after a user change, so a reading
+     * taken before the server applied it cannot snap the slider back.
+     */
     Timer {
-	id: setVolumeTimer
+        id: applyGuard
 
-	interval: 60
-	repeat: false
+        interval: 600
+        repeat: false
+    }
 
-	onTriggered: {
-	    Quickshell.execDetached([
-		"pactl",
-		"set-sink-volume",
-		"@DEFAULT_SINK@",
-		volumeRoot.requestedVolume + "%"
-	    ])
+    // Debounce, so dragging does not spawn a process per pixel.
+    Timer {
+        id: applyTimer
 
-	    if (volumeRoot.requestedVolume > 0) {
-		Quickshell.execDetached([
-		    "pactl",
-		    "set-sink-mute",
-		    "@DEFAULT_SINK@",
-		    "0"
-		])
-	    }
-	}
+        interval: 60
+        repeat: false
+
+        onTriggered: {
+            Quickshell.execDetached([
+                "pactl", "set-sink-volume", volumeRoot.defaultSink,
+                volumeRoot.volumePercent + "%"
+            ])
+
+            if (volumeRoot.volumePercent > 0 && volumeRoot.muted) {
+                Quickshell.execDetached([
+                    "pactl", "set-sink-mute", volumeRoot.defaultSink, "0"
+                ])
+            }
+        }
+    }
+
+    ListModel {
+        id: sinks
     }
 
     Process {
-	id: volumeProc
+        id: sinkProc
 
-	command: [
-	    "wpctl",
-	    "get-volume",
-	    "@DEFAULT_AUDIO_SINK@"
-	]
+        command: [
+            "sh",
+            "-c",
+            "pactl get-default-sink; pactl -f json list sinks"
+        ]
 
-	stdout: StdioCollector {
-	    onStreamFinished: {
-		const output = text.trim()
-		const match = output.match(/Volume:\s+([0-9.]+)/)
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const split = text.indexOf("\n")
 
-		if (!match) {
-		    volumeRoot.text = "󰕾 N/A"
-		    return
-		}
+                if (split < 0)
+                    return
 
-		const percentage = Math.round(
-		    parseFloat(match[1]) * 100
-		)
+                const defaultName = text.slice(0, split).trim()
+                const list = JSON.parse(text.slice(split + 1))
 
-		volumeRoot.volumePercent = percentage
-		volumeRoot.muted = output.includes("[MUTED]")
+                volumeRoot.defaultSink = defaultName
 
-		/*
-		 * Do not overwrite the handle while the user
-		 * is actively dragging it.
-		 */
-		if (!volumeSlider.pressed)
-		volumeSlider.value = percentage
-	    }
-	}
+                sinks.clear()
+
+                for (let i = 0; i < list.length; i++) {
+                    const sink = list[i]
+                    const channels = Object.keys(sink.volume)
+
+                    let percent = 0
+
+                    for (let c = 0; c < channels.length; c++) {
+                        percent = Math.max(percent, parseInt(
+                            sink.volume[channels[c]].value_percent
+                        ) || 0)
+                    }
+
+                    const isDefault = sink.name === defaultName
+
+                    sinks.append({
+                        name: sink.name,
+                        description: sink.description,
+                        volume: percent,
+                        sinkMuted: sink.mute,
+                        isDefault: isDefault
+                    })
+
+                    if (!isDefault)
+                        continue
+
+                    volumeRoot.muted = sink.mute
+
+                    // A local change is still settling, or is being dragged.
+                    if (applyGuard.running || volumeSlider.pressed)
+                        continue
+
+                    volumeRoot.volumePercent = percent
+                }
+            }
+        }
     }
 
-	//    /*
-	//     * Debounces volume changes so dragging the slider does not
-	//     * start hundreds of wpctl processes.
-	//     */
-	//    Timer {
-	// id: setVolumeTimer
-	//
-	// interval: 50
-	// repeat: false
-	//
-	// onTriggered: {
-	//     volumeRoot.setVolume(volumeSlider.value)
-	// }
-	//    }
-
     Timer {
-	id: refreshTimer
+        id: refreshTimer
 
-	interval: 2000
-	running: true
-	repeat: true
-	triggeredOnStart: true
+        interval: 2000
+        running: true
+        repeat: true
+        triggeredOnStart: true
 
-	onTriggered: volumeRoot.refreshVolume()
+        onTriggered: {
+            if (!sinkProc.running)
+                sinkProc.running = true
+        }
+    }
+
+    // Give the server a moment to apply an output switch.
+    Timer {
+        id: switchRefreshTimer
+
+        interval: 250
+        repeat: false
+
+        onTriggered: sinkProc.running = true
     }
 
     MouseArea {
-	anchors.fill: parent
-	cursorShape: Qt.PointingHandCursor
-	acceptedButtons: Qt.LeftButton
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
 
-	onClicked: {
-	    volumePopup.visible = !volumePopup.visible
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
 
-	    if (volumePopup.visible)
-	    volumeRoot.refreshVolume()
-	}
+        onClicked: mouse => {
+            if (mouse.button === Qt.MiddleButton) {
+                volumeRoot.toggleMute()
+                return
+            }
+
+            volumePopup.visible = !volumePopup.visible
+        }
+
+        onWheel: wheel => {
+            const step = wheel.angleDelta.y > 0 ? 5 : -5
+            volumeRoot.setVolume(volumeRoot.volumePercent + step)
+        }
+    }
+
+    // Close if inactive
+    Timer {
+        id: popupCloseTimer
+
+        interval: 5000
+        repeat: false
+
+        onTriggered: {
+            volumePopup.visible = false
+        }
     }
 
     PopupWindow {
-	id: volumePopup
+        id: volumePopup
 
-	visible: false
-	color: "transparent"
+        anchor {
+            item: volumeRoot
 
-	implicitWidth: 250
-	implicitHeight: 90
+            edges: Edges.Bottom | Edges.Right
+            gravity: Edges.Bottom | Edges.Left
 
-	anchor {
-	    window: volumeRoot.QsWindow.window
+            margins.top: 32
+            margins.right: 16
+        }
 
-	    /*
-	     * Map the volume widget's position into the bar window,
-	     * then position the popup directly underneath it.
-	     */
-	    rect.x: {
-		const position = volumeRoot.mapToItem(
-		    volumeRoot.QsWindow.window.contentItem,
-		    0,
-		    0
-		)
+        implicitWidth: 620
+        implicitHeight: 320
 
-		return position.x
-		+ volumeRoot.width
-		- volumePopup.implicitWidth
-	    }
+        visible: false
+        color: "transparent"
+        grabFocus: true
 
-	    rect.y: {
-		const position = volumeRoot.mapToItem(
-		    volumeRoot.QsWindow.window.contentItem,
-		    0,
-		    0
-		)
+        onVisibleChanged: {
+            if (visible) {
+                sinkProc.running = true
+                popupCloseTimer.restart()
+            } else {
+                popupCloseTimer.stop()
+            }
+        }
 
-		return position.y + volumeRoot.height + 6
-	    }
-	}
+        Rectangle {
+            anchors.fill: parent
 
-	Rectangle {
-	    anchors.fill: parent
+            radius: 8
+            color: Config.colors.background
 
-	    radius: 6
-	    color: Config.colors.background
-	    border.width: 1
-	    border.color: Config.colors.muted
+            border {
+                width: 1
+                color: Config.colors.muted
+            }
 
-	    RowLayout {
-		anchors {
-		    fill: parent
-		    leftMargin: 14
-		    rightMargin: 14
-		    topMargin: 12
-		    bottomMargin: 12
-		}
+            // Keep popup open while pointer is over it.
+            HoverHandler {
+                onHoveredChanged: {
+                    if (hovered)
+                        popupCloseTimer.stop()
+                    else
+                        popupCloseTimer.restart()
+                }
+            }
 
-		spacing: 12
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 14
+                spacing: 10
 
-		Text {
-		    text: volumeRoot.muted ? "󰖁" : "󰕾"
-		    color: volumeRoot.muted
-		    ? Config.colors.muted
-		    : Config.colors.yellow
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
 
-		    font {
-			family: Config.bar.fontFamily
-			pixelSize: Config.bar.fontSize + 2
-			bold: true
-		    }
+                    Text {
+                        text: volumeRoot.muted ? "󰖁" : "󰕾"
 
-		    MouseArea {
-			anchors.fill: parent
-			cursorShape: Qt.PointingHandCursor
+                        color: volumeRoot.muted
+                            ? Config.colors.muted
+                            : Config.colors.yellow
 
-			onClicked: {
-			    Quickshell.execDetached([
-				"wpctl",
-				"set-mute",
-				"@DEFAULT_AUDIO_SINK@",
-				"toggle"
-			    ])
+                        font {
+                            family: Config.bar.fontFamily
+                            pixelSize: Config.bar.fontSize + 2
+                            bold: true
+                        }
 
-			    muteRefreshTimer.restart()
-			}
-		    }
-		}
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
 
-		Slider {
-		    id: volumeSlider
+                            onClicked: {
+                                popupCloseTimer.restart()
+                                volumeRoot.toggleMute()
+                            }
+                        }
+                    }
 
-		    Layout.fillWidth: true
+                    Slider {
+                        id: volumeSlider
 
-		    from: 0
-		    to: 100
-		    value: volumeRoot.volumePercent
-		    stepSize: 1
+                        Layout.fillWidth: true
 
-		    onMoved: {
-			const percentage = Math.round(value)
+                        from: 0
+                        to: 100
+                        stepSize: 1
 
-			volumeRoot.volumePercent = percentage
-			volumeRoot.setVolume(percentage)
-		    }
-		}
+                        value: volumeRoot.volumePercent
 
-		Text {
-		    Layout.preferredWidth: 42
+                        onMoved: {
+                            popupCloseTimer.restart()
+                            volumeRoot.setVolume(value)
+                        }
 
-		    horizontalAlignment: Text.AlignRight
+                        background: Rectangle {
+                            x: volumeSlider.leftPadding
+                            y: volumeSlider.topPadding
+                                + volumeSlider.availableHeight / 2 - height / 2
 
-		    text: Math.round(volumeSlider.value) + "%"
-		    color: Config.colors.foreground
+                            implicitWidth: 120
+                            implicitHeight: 6
 
-		    font {
-			family: Config.bar.fontFamily
-			pixelSize: Config.bar.fontSize
-			bold: true
-		    }
-		}
-	    }
-	}
-    }
+                            width: volumeSlider.availableWidth
+                            height: implicitHeight
 
-    Timer {
-	id: muteRefreshTimer
+                            radius: 3
+                            color: Config.colors.muted
 
-	interval: 100
-	repeat: false
+                            Rectangle {
+                                width: volumeSlider.visualPosition * parent.width
+                                height: parent.height
 
-	onTriggered: volumeRoot.refreshVolume()
+                                radius: 3
+
+                                color: volumeRoot.muted
+                                    ? Config.colors.muted
+                                    : Config.colors.yellow
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x: volumeSlider.leftPadding
+                                + volumeSlider.visualPosition
+                                    * (volumeSlider.availableWidth - width)
+
+                            y: volumeSlider.topPadding
+                                + volumeSlider.availableHeight / 2 - height / 2
+
+                            implicitWidth: 14
+                            implicitHeight: 14
+
+                            radius: 7
+
+                            color: Config.colors.background
+
+                            border {
+                                width: 2
+
+                                color: volumeRoot.muted
+                                    ? Config.colors.muted
+                                    : Config.colors.yellow
+                            }
+                        }
+                    }
+
+                    Text {
+                        Layout.preferredWidth: 42
+
+                        horizontalAlignment: Text.AlignRight
+
+                        text: volumeRoot.volumePercent + "%"
+                        color: Config.colors.foreground
+
+                        font {
+                            family: Config.bar.fontFamily
+                            pixelSize: Config.bar.fontSize
+                            bold: true
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 1
+                    color: Config.colors.muted
+                }
+
+                Text {
+                    text: "Output"
+                    color: Config.colors.muted
+
+                    font {
+                        family: Config.bar.fontFamily
+                        pixelSize: Config.bar.fontSize - 3
+                    }
+                }
+
+                ListView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    clip: true
+                    spacing: 4
+
+                    model: sinks
+
+                    delegate: Rectangle {
+                        required property string name
+                        required property string description
+                        required property int volume
+                        required property bool sinkMuted
+                        required property bool isDefault
+
+                        width: ListView.view.width
+                        implicitHeight: 34
+
+                        radius: 5
+
+                        color: isDefault
+                            ? Qt.alpha(Config.colors.yellow, 0.18)
+                            : (sinkMouse.containsMouse
+                                ? Config.colors.muted
+                                : "transparent")
+
+                        border {
+                            width: isDefault ? 1 : 0
+                            color: Config.colors.yellow
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 8
+
+                            Text {
+                                text: sinkMuted ? "󰖁" : "󰕾"
+
+                                color: isDefault
+                                    ? Config.colors.yellow
+                                    : Config.colors.muted
+
+                                font {
+                                    family: Config.bar.fontFamily
+                                    pixelSize: Config.bar.fontSize - 1
+                                }
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+
+                                text: description
+                                elide: Text.ElideRight
+
+                                color: isDefault
+                                    ? Config.colors.yellow
+                                    : Config.colors.foreground
+
+                                font {
+                                    family: Config.bar.fontFamily
+                                    pixelSize: Config.bar.fontSize - 3
+                                    bold: isDefault
+                                }
+                            }
+
+                            Text {
+                                text: volume + "%"
+                                color: Config.colors.muted
+
+                                font {
+                                    family: Config.bar.fontFamily
+                                    pixelSize: Config.bar.fontSize - 3
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: sinkMouse
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: {
+                                popupCloseTimer.restart()
+                                volumeRoot.selectSink(name)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -18,10 +18,6 @@ Variants {
 	screen: modelData
 
 	// System data
-	property int cpuUsage: 0
-	property int memUsage: 0
-	property var lastCpuIdle: 0
-	property var lastCpuTotal: 0
 	property string wifiName: "󰤭 Offline"
 	property string weatherText: ""
 	property string weather: "󰖐 Loading..."
@@ -87,50 +83,8 @@ Variants {
 		Layout.fillWidth: true
 	    }
 
-	    // Date and Time
-	    Rectangle {
+	    Clock {
 		Layout.alignment: Qt.AlignVCenter
-
-		implicitWidth: clock.implicitWidth + 16
-		implicitHeight: 24
-
-		// radius: 3
-		color: Config.colors.background
-		Text {
-		    id: clock
-
-		    anchors.fill: parent
-
-		    color: Config.colors.blue
-
-		    text: " " + Qt.formatDateTime(
-			new Date(),
-			"ddd, MMM dd - HH:mm"
-		    )
-
-		    font {
-			family: Config.bar.fontFamily
-			pixelSize: Config.bar.fontSize
-			bold: true
-
-		    }
-
-		    horizontalAlignment: Text.AlignHCenter
-		    verticalAlignment: Text.AlignVCenter
-
-		    Timer {
-			interval: 1000
-			running: true
-			repeat: true
-
-			onTriggered: {
-			    clock.text = " " + Qt.formatDateTime(
-				new Date(),
-				"ddd, MMM dd - HH:mm"
-			    )
-			}
-		    }
-		}
 	    }
 
 	    Item {
@@ -153,60 +107,7 @@ Variants {
 		    anchors.centerIn: parent
 		    spacing: 8
 
-		    // CPU
-		    Text {
-			text: "󰍛 " + root.cpuUsage + "%"
-			color: Config.colors.yellow
-
-			font {
-			    family: Config.bar.fontFamily
-			    pixelSize: Config.bar.fontSize
-			    bold: true
-			}
-
-			Process {
-			    id: cpuProc
-			    command: ["sh", "-c", "head -1 /proc/stat"]
-
-			    stdout: SplitParser {
-				onRead: data => {
-				    if (!data)
-				    return
-
-				    const parts = data.trim().split(/\s+/)
-				    const idle =
-				    parseInt(parts[4]) + parseInt(parts[5])
-
-				    const total = parts
-				    .slice(1, 8)
-				    .reduce((sum, value) =>
-				    sum + parseInt(value), 0)
-
-				    if (root.lastCpuTotal > 0) {
-					root.cpuUsage = Math.round(
-					    100 * (
-						1 -
-						(idle - root.lastCpuIdle) /
-						(total - root.lastCpuTotal)
-					    )
-					)
-				    }
-
-				    root.lastCpuTotal = total
-				    root.lastCpuIdle = idle
-				}
-			    }
-			}
-
-			Timer {
-			    interval: 2000
-			    running: true
-			    repeat: true
-
-			    onTriggered: cpuProc.running = true
-			    Component.onCompleted: cpuProc.running = true
-			}
-		    }
+		    Cpu {}
 
 		    Rectangle {
 			implicitWidth: 1
@@ -214,45 +115,23 @@ Variants {
 			color: Config.colors.muted
 		    }
 
-		    // Memory
-		    Text {
-			text: " " + root.memUsage + "%"
-			color: Config.colors.cyan
+		    Memory {}
 
-			font {
-			    family: Config.bar.fontFamily
-			    pixelSize: Config.bar.fontSize
-			    bold: true
-			}
-
-			Process {
-			    id: memProc
-			    command: ["sh", "-c", "free | grep Mem"]
-
-			    stdout: SplitParser {
-				onRead: data => {
-				    if (!data)
-				    return
-
-				    const parts = data.trim().split(/\s+/)
-				    const total = parseInt(parts[1]) || 1
-				    const used = parseInt(parts[2]) || 0
-
-				    root.memUsage =
-				    Math.round(100 * used / total)
-				}
-			    }
-			}
-
-			Timer {
-			    interval: 2000
-			    running: true
-			    repeat: true
-
-			    onTriggered: memProc.running = true
-			    Component.onCompleted: memProc.running = true
-			}
+		    Rectangle {
+			implicitWidth: 1
+			implicitHeight: 16
+			color: Config.colors.muted
 		    }
+
+		    Battery {}
+
+		    Rectangle {
+		    	implicitWidth: 1
+		    	implicitHeight: 16
+		    	color: Config.colors.muted
+		    }
+
+		    Docker {}
 
 		    Rectangle {
 			implicitWidth: 1

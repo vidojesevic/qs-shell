@@ -29,7 +29,7 @@ Scope {
 	color: "transparent"
 	implicitWidth: 380
 	// implicitHeight: centerCol.implicitHeight + 24
-	implicitHeight: 600
+	implicitHeight: historyModel.count > 0 ? 600 : 200
 	// implicitHeight: Math.min(600, centerCol.implicitHeight + 24)
 	exclusionMode: ExclusionMode.Ignore
 
@@ -76,8 +76,28 @@ Scope {
 		    }
 		}
 
+		Text {
+		    Layout.fillWidth: true
+		    Layout.fillHeight: true
+
+		    visible: historyModel.count === 0
+
+		    text: "No notifications"
+		    color: Config.colors.muted
+
+		    horizontalAlignment: Text.AlignHCenter
+		    verticalAlignment: Text.AlignVCenter
+
+		    font {
+			family: Config.bar.fontFamily
+			pixelSize: Config.bar.fontSize - 1
+		    }
+		}
+
 		ListView {
 		    id: notificationList
+
+		    visible: historyModel.count > 0
 
 		    Layout.fillWidth: true
 		    Layout.fillHeight: true
