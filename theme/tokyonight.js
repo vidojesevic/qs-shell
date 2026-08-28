@@ -5,6 +5,7 @@ var vscode = "Tokyo Night"
 var ghostty = "TokyoNight"
 var helium = "#7aa2f7"
 var nvim = "tokyonight"
+var gtkAccent = "blue"
 
 var colors = {
     background: "#1a1b26",

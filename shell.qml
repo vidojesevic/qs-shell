@@ -1,7 +1,9 @@
 import Quickshell
 
 import "notifications"
+import "perun-launcher"
 import "qsbar"
+import "recording"
 import "theme"
 
 ShellRoot {
@@ -10,4 +12,8 @@ ShellRoot {
     Notifications {}
 
     ThemeSwitcher {}
+
+    Launcher {}
+
+    RecordingHud {}
 }
