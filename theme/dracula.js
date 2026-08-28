@@ -4,6 +4,7 @@ var wallpaper = "dracula.jpg"
 var vscode = "Dracula Theme"
 var ghostty = "Dracula"
 var helium = "#bd93f9"
+var nvim = "dracula"
 
 var colors = {
     background: "#282a36",

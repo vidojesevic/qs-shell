@@ -4,6 +4,7 @@ var wallpaper = "tokyonight.jpg"
 var vscode = "Tokyo Night"
 var ghostty = "TokyoNight"
 var helium = "#7aa2f7"
+var nvim = "tokyonight"
 
 var colors = {
     background: "#1a1b26",

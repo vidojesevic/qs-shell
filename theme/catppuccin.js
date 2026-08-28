@@ -4,6 +4,7 @@ var wallpaper = "catpuccin.jpg"
 var vscode = "Catppuccin Mocha"
 var ghostty = "Catppuccin Mocha"
 var helium = "#cba6f7"
+var nvim = "catppuccin"
 
 var colors = {
     background: "#1e1e2e",

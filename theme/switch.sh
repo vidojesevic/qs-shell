@@ -13,6 +13,7 @@ wall="$(sed -n 's/^var wallpaper = "\(.*\)"/\1/p' "$dir/$name.js")"
 vscode="$(sed -n 's/^var vscode = "\(.*\)"/\1/p' "$dir/$name.js")"
 ghostty="$(sed -n 's/^var ghostty = "\(.*\)"/\1/p' "$dir/$name.js")"
 helium="$(sed -n 's/^var helium = "\(.*\)"/\1/p' "$dir/$name.js")"
+nvim="$(sed -n 's/^var nvim = "\(.*\)"/\1/p' "$dir/$name.js")"
 
 ln -sfn "$name.js" "$dir/current.js"
 ln -sfn "$HOME/.config/walls/$wall" "$dir/wallpaper"
@@ -35,6 +36,12 @@ pkill -USR2 -x ghostty || true
 # Helium (Chromium): Preferences are only safe to edit while it is closed;
 # applies on next launch.
 pgrep -x helium-browser >/dev/null || "$dir/helium.py" "$helium" || true
+
+# Neovim: default for new instances + live switch in running ones.
+echo "return \"$nvim\"" > "$HOME/.config/nvim/lua/config/theme.lua"
+for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
+    [ -S "$sock" ] && nvim --server "$sock" --remote-expr "execute('colorscheme $nvim')" >/dev/null 2>&1 || true
+done
 
 # Manual use: reload running quickshell too.
 [ -n "$QS_RELOAD_SELF" ] || qs ipc call theme reload >/dev/null 2>&1 || true
