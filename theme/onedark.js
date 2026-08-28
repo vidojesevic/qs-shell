@@ -1,6 +1,6 @@
 .pragma library
 
-var wallpaper = "onedark.jpg"
+var wallpaper = "onedark.png"
 var vscode = "One Dark Pro"
 var ghostty = "Atom One Dark"
 var helium = "#61afef"

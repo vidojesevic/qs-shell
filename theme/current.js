@@ -1,1 +1,1 @@
-catppuccin.js
+tokyonight.js
