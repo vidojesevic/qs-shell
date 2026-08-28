@@ -13,7 +13,7 @@ Text {
     property var targetScreen: null
 
     text: "󰍃"
-    color: Config.colors.purple
+    color: sessionMenu.visible ? Config.text.active : Config.text.normal
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -120,7 +120,7 @@ Text {
                         Layout.alignment: Qt.AlignHCenter
 
                         text: "Session"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -137,13 +137,13 @@ Text {
                                 {
                                     icon: "󰤄",
                                     label: "Suspend",
-                                    accent: Config.colors.blue,
+                                    accent: Config.text.normal,
                                     command: ["loginctl", "suspend"]
                                 },
                                 {
                                     icon: "󰍃",
                                     label: "Logout",
-                                    accent: Config.colors.purple,
+                                    accent: Config.text.normal,
                                     command: [
                                         "loginctl", "terminate-user",
                                         Quickshell.env("USER")
@@ -152,13 +152,13 @@ Text {
                                 {
                                     icon: "󰜉",
                                     label: "Reboot",
-                                    accent: Config.colors.yellow,
+                                    accent: Config.text.normal,
                                     command: ["loginctl", "reboot"]
                                 },
                                 {
                                     icon: "󰐥",
                                     label: "Poweroff",
-                                    accent: Config.colors.red,
+                                    accent: Config.text.critical,
                                     command: ["loginctl", "poweroff"]
                                 }
                             ]
@@ -180,7 +180,7 @@ Text {
 
                                     color: buttonMouse.containsMouse
                                         ? modelData.accent
-                                        : Config.colors.muted
+                                        : Config.text.dim
                                 }
 
                                 Behavior on color {
@@ -209,7 +209,7 @@ Text {
                                         Layout.alignment: Qt.AlignHCenter
 
                                         text: modelData.label
-                                        color: Config.colors.foreground
+                                        color: Config.text.normal
 
                                         font {
                                             family: Config.bar.fontFamily
@@ -238,7 +238,7 @@ Text {
                         Layout.alignment: Qt.AlignHCenter
 
                         text: "Esc to cancel"
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily

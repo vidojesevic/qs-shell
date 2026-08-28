@@ -26,7 +26,7 @@ Scope {
     property int elapsed: 0
 
     readonly property int bw: 3
-    readonly property color accent: "#ff4444"
+    readonly property color accent: Config.text.critical
 
     IpcHandler {
         target: "recording"

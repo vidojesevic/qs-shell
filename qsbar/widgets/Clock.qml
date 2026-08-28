@@ -45,7 +45,7 @@ Rectangle {
         leftPadding: Config.bar.padding + 6
         rightPadding: Config.bar.padding + 6
 
-        color: Config.colors.blue
+        color: calendarPopup.visible ? Config.text.active : Config.text.normal
 
         text: "\uf073 " + Qt.formatDateTime(
             clockRoot.now,
@@ -154,8 +154,8 @@ Rectangle {
                     Text {
                         text: "\uf053"
                         color: previousMouse.containsMouse
-                            ? Config.colors.cyan
-                            : Config.colors.muted
+                            ? Config.text.active
+                            : Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -189,7 +189,7 @@ Rectangle {
                             "MMMM yyyy"
                         )
 
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -215,8 +215,8 @@ Rectangle {
                     Text {
                         text: "\uf054"
                         color: nextMouse.containsMouse
-                            ? Config.colors.cyan
-                            : Config.colors.muted
+                            ? Config.text.active
+                            : Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -259,7 +259,7 @@ Rectangle {
                             horizontalAlignment: Text.AlignHCenter
 
                             text: modelData
-                            color: Config.colors.muted
+                            color: Config.text.dim
 
                             font {
                                 family: Config.bar.fontFamily
@@ -289,9 +289,6 @@ Rectangle {
                                 && day.getMonth() === clockRoot.now.getMonth()
                                 && day.getDate() === clockRoot.now.getDate()
 
-                            readonly property bool isWeekend:
-                                day.getDay() === 0 || day.getDay() === 6
-
                             Layout.fillWidth: true
 
                             // 30px date number box, plus padding above and below.
@@ -314,14 +311,12 @@ Rectangle {
 
                                 color: {
                                     if (!inMonth)
-                                        return Config.colors.muted
+                                        return Config.text.dim
 
                                     if (isToday)
-                                        return Config.colors.blue
+                                        return Config.text.active
 
-                                    return isWeekend
-                                        ? Config.colors.purple
-                                        : Config.colors.foreground
+                                    return Config.text.normal
                                 }
 
                                 font {
@@ -350,7 +345,7 @@ Rectangle {
 
                     Text {
                         text: Qt.formatDate(clockRoot.now, "dddd, dd MMMM yyyy")
-                        color: Config.colors.foreground
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -364,7 +359,7 @@ Rectangle {
 
                     Text {
                         text: Qt.formatTime(clockRoot.now, "HH:mm:ss")
-                        color: Config.colors.cyan
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily

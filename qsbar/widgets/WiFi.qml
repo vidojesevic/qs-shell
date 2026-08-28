@@ -25,7 +25,7 @@ Text {
             : "󰤭 Offline"
     }
 
-    color: Config.colors.cyan
+    color: wifiPopup.visible ? Config.text.active : Config.text.normal
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -350,7 +350,7 @@ Text {
                     Layout.fillWidth: true
 
                     text: "Connect to " + wifiRoot.selectedSsid
-                    color: Config.colors.cyan
+                    color: Config.text.active
                     elide: Text.ElideRight
 
                     font {
@@ -366,7 +366,7 @@ Text {
                     implicitHeight: 36
 
                     radius: 5
-                    color: "#11131a"
+                    color: Config.colors.backgroundAlt
 
                     border {
                         width: passwordInput.activeFocus ? 2 : 1
@@ -385,8 +385,8 @@ Text {
 
                         verticalAlignment: TextInput.AlignVCenter
 
-                        color: Config.colors.foreground
-                        selectionColor: Config.colors.blue
+                        color: Config.text.normal
+                        selectionColor: Config.text.active
 
                         echoMode: TextInput.Password
                         passwordCharacter: "●"
@@ -416,7 +416,7 @@ Text {
 
                         visible: passwordInput.text.length === 0
                         text: "Enter password"
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -454,7 +454,7 @@ Text {
                         Text {
                             anchors.centerIn: parent
                             text: "Cancel"
-                            color: Config.colors.foreground
+                            color: Config.text.normal
 
                             font {
                                 family: Config.bar.fontFamily
@@ -493,7 +493,7 @@ Text {
                         Text {
                             anchors.centerIn: parent
                             text: "Connect"
-                            color: "#ffffff"
+                            color: Config.colors.background
 
                             font {
                                 family: Config.bar.fontFamily
@@ -586,7 +586,7 @@ Text {
 
                     Text {
                         text: "Wi-Fi"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -675,7 +675,7 @@ Text {
                             : "󰤭 Not connected"
                     }
 
-                    color: Config.colors.blue
+                    color: Config.text.normal
 
                     font {
                         family: Config.bar.fontFamily
@@ -705,7 +705,7 @@ Text {
                                 ? "Scanning..."
                                 : "No Wi-Fi networks found")
 
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -758,8 +758,8 @@ Text {
                                     text: wifiRoot.signalIcon(strength)
 
                                     color: inUse
-                                        ? Config.colors.cyan
-                                        : Config.colors.muted
+                                        ? Config.text.active
+                                        : Config.text.dim
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -774,8 +774,8 @@ Text {
                                     elide: Text.ElideRight
 
                                     color: inUse
-                                        ? Config.colors.cyan
-                                        : Config.colors.foreground
+                                        ? Config.text.active
+                                        : Config.text.normal
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -788,7 +788,7 @@ Text {
                                     visible: secured
 
                                     text: "󰌾"
-                                    color: Config.colors.muted
+                                    color: Config.text.dim
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -798,7 +798,7 @@ Text {
 
                                 Text {
                                     text: strength + "%"
-                                    color: Config.colors.muted
+                                    color: Config.text.dim
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -811,7 +811,7 @@ Text {
                                     visible: busy
 
                                     text: "󰔟"
-                                    color: Config.colors.yellow
+                                    color: Config.text.dim
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -832,7 +832,7 @@ Text {
                                     visible: inUse && !busy
 
                                     text: "Connected"
-                                    color: Config.colors.cyan
+                                    color: Config.text.active
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -886,7 +886,7 @@ Text {
                         anchors.centerIn: parent
 
                         text: "󰑓 Refresh networks"
-                        color: Config.colors.cyan
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily

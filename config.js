@@ -1,6 +1,7 @@
 .import "theme/current.js" as Theme
 
 const colors = Theme.colors
+const text = Theme.text
 
 const bar = {
     fontFamily: "JetBrainsMono Nerd Font",

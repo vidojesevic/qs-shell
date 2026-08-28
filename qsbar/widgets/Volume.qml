@@ -17,7 +17,7 @@ Text {
         ? "󰖁 " + volumePercent + "%"
         : "󰕾 " + volumePercent + "%"
 
-    color: Config.colors.yellow
+    color: volumePopup.visible ? Config.text.active : Config.text.normal
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -287,8 +287,8 @@ Text {
                         text: volumeRoot.muted ? "󰖁" : "󰕾"
 
                         color: volumeRoot.muted
-                            ? Config.colors.muted
-                            : Config.colors.yellow
+                            ? Config.text.dim
+                            : Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -380,7 +380,7 @@ Text {
                         horizontalAlignment: Text.AlignRight
 
                         text: volumeRoot.volumePercent + "%"
-                        color: Config.colors.foreground
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -398,7 +398,7 @@ Text {
 
                 Text {
                     text: "Output"
-                    color: Config.colors.muted
+                    color: Config.text.dim
 
                     font {
                         family: Config.bar.fontFamily
@@ -448,8 +448,8 @@ Text {
                                 text: sinkMuted ? "󰖁" : "󰕾"
 
                                 color: isDefault
-                                    ? Config.colors.yellow
-                                    : Config.colors.muted
+                                    ? Config.text.active
+                                    : Config.text.dim
 
                                 font {
                                     family: Config.bar.fontFamily
@@ -464,8 +464,8 @@ Text {
                                 elide: Text.ElideRight
 
                                 color: isDefault
-                                    ? Config.colors.yellow
-                                    : Config.colors.foreground
+                                    ? Config.text.active
+                                    : Config.text.normal
 
                                 font {
                                     family: Config.bar.fontFamily
@@ -476,7 +476,7 @@ Text {
 
                             Text {
                                 text: volume + "%"
-                                color: Config.colors.muted
+                                color: Config.text.dim
 
                                 font {
                                     family: Config.bar.fontFamily

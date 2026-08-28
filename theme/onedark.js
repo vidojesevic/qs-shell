@@ -24,3 +24,11 @@ var colors = {
     accent: "#61afef",
     urgent: "#e06c75"
 }
+
+// Font colors. One default, one active, one critical per theme.
+var text = {
+    normal: colors.foreground,
+    dim: colors.muted,
+    active: colors.accent,
+    critical: colors.red
+}

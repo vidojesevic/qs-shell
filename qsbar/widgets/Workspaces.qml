@@ -24,8 +24,8 @@ Text {
     text: root.wsId
 
     color: root.isActive
-        ? Config.colors.cyan
-        : (root.ws ? Config.colors.blue : Config.colors.muted)
+        ? Config.text.active
+        : (root.ws ? Config.text.normal : Config.text.dim)
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding

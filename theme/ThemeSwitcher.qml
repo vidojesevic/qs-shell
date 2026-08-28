@@ -196,7 +196,7 @@ PanelWindow {
 
                     Text {
                         text: "\uf002"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -209,8 +209,8 @@ PanelWindow {
 
                         Layout.fillWidth: true
 
-                        color: Config.colors.foreground
-                        selectionColor: Config.colors.accent
+                        color: Config.text.normal
+                        selectionColor: Config.text.active
                         selectedTextColor: Config.colors.background
                         clip: true
 
@@ -248,7 +248,7 @@ PanelWindow {
                             visible: search.text === ""
 
                             text: "Search themes"
-                            color: Config.colors.muted
+                            color: Config.text.dim
 
                             font: search.font
                             verticalAlignment: Text.AlignVCenter
@@ -257,7 +257,7 @@ PanelWindow {
 
                     Text {
                         text: themeMenu.results.length
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -322,7 +322,10 @@ PanelWindow {
                             Text {
                                 Layout.fillWidth: true
                                 text: row.modelData.label
-                                color: Config.colors.foreground
+
+                                color: list.currentIndex === row.index
+                                    ? Config.text.active
+                                    : Config.text.normal
 
                                 font {
                                     family: Config.bar.fontFamily

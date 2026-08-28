@@ -9,7 +9,7 @@ Text {
     property string keyLayout: "Eng"
 
     text: "󰌌 " + root.keyLayout
-    color: Config.colors.blue
+    color: Config.text.normal
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding

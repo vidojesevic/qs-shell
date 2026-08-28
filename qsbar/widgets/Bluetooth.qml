@@ -21,7 +21,7 @@ Text {
         return null
     }
 
-    color: Config.colors.blue
+    color: btPopup.visible ? Config.text.active : Config.text.normal
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -156,7 +156,7 @@ Text {
 
                     Text {
                         text: "Bluetooth"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -248,7 +248,7 @@ Text {
                             : "󰂯 Not connected"
                     }
 
-                    color: Config.colors.blue
+                    color: Config.text.normal
 
                     font {
                         family: Config.bar.fontFamily
@@ -275,7 +275,7 @@ Text {
                             ? "Scanning..."
                             : "No devices found"
 
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -327,8 +327,8 @@ Text {
                                     text: btRoot.deviceIcon(modelData)
 
                                     color: modelData.connected
-                                        ? Config.colors.blue
-                                        : Config.colors.muted
+                                        ? Config.text.active
+                                        : Config.text.dim
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -343,8 +343,8 @@ Text {
                                     elide: Text.ElideRight
 
                                     color: modelData.connected
-                                        ? Config.colors.cyan
-                                        : Config.colors.foreground
+                                        ? Config.text.active
+                                        : Config.text.normal
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -357,7 +357,7 @@ Text {
                                     visible: modelData.batteryAvailable
 
                                     text: "󰁹 " + Math.round(modelData.battery * 100) + "%"
-                                    color: Config.colors.muted
+                                    color: Config.text.dim
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -370,7 +370,7 @@ Text {
                                     visible: busy
 
                                     text: "󰔟"
-                                    color: Config.colors.yellow
+                                    color: Config.text.dim
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -391,7 +391,7 @@ Text {
                                     visible: modelData.connected && !busy
 
                                     text: "Connected"
-                                    color: Config.colors.blue
+                                    color: Config.text.active
 
                                     font {
                                         family: Config.bar.fontFamily
@@ -440,7 +440,7 @@ Text {
                         anchors.centerIn: parent
 
                         text: "󰑓 Rescan devices"
-                        color: Config.colors.cyan
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily

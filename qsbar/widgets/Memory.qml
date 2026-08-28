@@ -23,7 +23,7 @@ Text {
         : 0
 
     text: " " + usage + "%"
-    color: Config.colors.cyan
+    color: memoryPopup.visible ? Config.text.active : Config.text.normal
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -209,7 +209,7 @@ Text {
 
                     Text {
                         text: "Memory"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -224,7 +224,7 @@ Text {
 
                     Text {
                         text: memoryRoot.gib(memoryRoot.total) + " GiB total"
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -241,8 +241,8 @@ Text {
                         text: " " + memoryRoot.usage + "%"
 
                         color: memoryRoot.usage >= 85
-                            ? Config.colors.red
-                            : Config.colors.cyan
+                            ? Config.text.critical
+                            : Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -255,7 +255,7 @@ Text {
                         text: memoryRoot.gib(memoryRoot.used)
                             + " / " + memoryRoot.gib(memoryRoot.total) + " GiB"
 
-                        color: Config.colors.blue
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -323,7 +323,7 @@ Text {
 
                             Text {
                                 text: modelData.label
-                                color: Config.colors.muted
+                                color: Config.text.dim
 
                                 font {
                                     family: Config.bar.fontFamily
@@ -337,7 +337,7 @@ Text {
 
                             Text {
                                 text: memoryRoot.gib(modelData.value) + " GiB"
-                                color: Config.colors.foreground
+                                color: Config.text.normal
 
                                 font {
                                     family: Config.bar.fontFamily
@@ -354,7 +354,7 @@ Text {
 
                     Text {
                         text: "Swap"
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -372,7 +372,7 @@ Text {
                                 + " / " + memoryRoot.gib(memoryRoot.swapTotal) + " GiB"
                             : "none"
 
-                        color: Config.colors.foreground
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -389,7 +389,7 @@ Text {
 
                 Text {
                     text: "Top processes"
-                    color: Config.colors.muted
+                    color: Config.text.dim
 
                     font {
                         family: Config.bar.fontFamily
@@ -411,7 +411,7 @@ Text {
                             Layout.fillWidth: true
 
                             text: name
-                            color: Config.colors.foreground
+                            color: Config.text.normal
                             elide: Text.ElideRight
 
                             font {
@@ -422,7 +422,7 @@ Text {
 
                         Text {
                             text: (rss / 1024).toFixed(0) + " MiB"
-                            color: Config.colors.cyan
+                            color: Config.text.normal
 
                             font {
                                 family: Config.bar.fontFamily

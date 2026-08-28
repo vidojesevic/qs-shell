@@ -51,16 +51,10 @@ Text {
     }
 
     function levelColor() {
-        if (charging)
-            return Config.colors.blue
+        if (!charging && percent <= 15)
+            return Config.text.critical
 
-        if (percent <= 15)
-            return Config.colors.red
-
-        if (percent <= 30)
-            return Config.colors.yellow
-
-        return Config.colors.cyan
+        return Config.text.normal
     }
 
     function duration(hours) {
@@ -74,7 +68,7 @@ Text {
     }
 
     text: levelIcon() + " " + percent + "%"
-    color: levelColor()
+    color: batteryPopup.visible ? Config.text.active : levelColor()
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -248,7 +242,7 @@ Text {
 
                     Text {
                         text: "Battery"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -265,8 +259,8 @@ Text {
                         text: batteryRoot.acOnline ? "󰚥 AC" : "󰁽 On battery"
 
                         color: batteryRoot.acOnline
-                            ? Config.colors.blue
-                            : Config.colors.muted
+                            ? Config.text.normal
+                            : Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -292,7 +286,7 @@ Text {
 
                     Text {
                         text: batteryRoot.status
-                        color: Config.colors.foreground
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -311,7 +305,7 @@ Text {
                         text: batteryRoot.duration(batteryRoot.hoursLeft)
                             + (batteryRoot.charging ? " to full" : " left")
 
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -400,7 +394,7 @@ Text {
 
                             Text {
                                 text: modelData.label
-                                color: Config.colors.muted
+                                color: Config.text.dim
 
                                 font {
                                     family: Config.bar.fontFamily
@@ -414,7 +408,7 @@ Text {
 
                             Text {
                                 text: modelData.value
-                                color: Config.colors.foreground
+                                color: Config.text.normal
                                 elide: Text.ElideRight
 
                                 font {

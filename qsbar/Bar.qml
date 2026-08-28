@@ -19,10 +19,52 @@ Variants {
 
 	// System data
 	property string wifiName: "󰤭 Offline"
-	property string weatherText: ""
-	property string weather: "󰖐 Loading..."
+	property string weatherCondition: ""
+	property string weatherTemp: "Loading..."
 
 	property string keyLayout: "en_US"
+
+	// Nerd Font glyph for a wttr.in condition name, so the icon takes a
+	// text color. The emoji wttr returns for %c would ignore one.
+	function weatherIcon(condition) {
+	    const c = condition.toLowerCase()
+
+	    if (c.includes("thunder"))
+		return "󰖓"
+
+	    if (c.includes("fog") || c.includes("mist") || c.includes("haze"))
+		return "󰖑"
+
+	    if (c.includes("snow") || c.includes("blizzard"))
+		return "󰖘"
+
+	    if (c.includes("sleet") || c.includes("ice pellets")
+		|| c.includes("hail") || c.includes("freezing"))
+		return "󰖒"
+
+	    if (c.includes("torrential") || c.includes("heavy rain"))
+		return "󰖖"
+
+	    if (c.includes("rain") || c.includes("drizzle") || c.includes("shower"))
+		return "󰖗"
+
+	    if (c.includes("partly"))
+		return "󰖕"
+
+	    if (c.includes("overcast") || c.includes("cloud"))
+		return "󰖐"
+
+	    if (c.includes("sunny"))
+		return "󰖙"
+
+	    if (c.includes("clear"))
+		return "󰖔"
+
+	    if (c.includes("wind") || c.includes("blowing"))
+		return "󰖝"
+
+	    return "󰖐"
+	}
 
 	// Single Monitor
 	// property int wsStart: screen.name === "eDP-1" ? 1 : 9
@@ -151,8 +193,14 @@ Variants {
 		    Text {
 			id: weatherText
 
-			text: root.weather
-			color: Config.colors.yellow
+			// Icon and reading colored apart.
+			textFormat: Text.StyledText
+
+			text: "<font color=\"" + Config.text.normal + "\">"
+			    + root.weatherIcon(root.weatherCondition)
+			    + "</font> " + root.weatherTemp
+
+			color: Config.text.normal
 
 			font {
 			    family: Config.bar.fontFamily
@@ -168,16 +216,21 @@ Variants {
 				"-fsSL",
 				"--max-time",
 				"10",
-				"https://wttr.in/Belgrade?format=%c+%t"
+				"https://wttr.in/Belgrade?format=%C,%t"
 			    ]
 
 			    stdout: StdioCollector {
 				onStreamFinished: {
-				    const result = text.trim()
+				    const parts = text.trim().split(",")
 
-				    root.weather = result.length > 0
-				    ? result
-				    : "󰖐 N/A"
+				    if (parts.length < 2) {
+					root.weatherCondition = ""
+					root.weatherTemp = "N/A"
+					return
+				    }
+
+				    root.weatherCondition = parts[0]
+				    root.weatherTemp = parts[1]
 				}
 			    }
 			}
