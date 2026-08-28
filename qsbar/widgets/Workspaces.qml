@@ -27,6 +27,9 @@ Text {
         ? Config.colors.cyan
         : (root.ws ? Config.colors.blue : Config.colors.muted)
 
+    leftPadding: Config.bar.padding
+    rightPadding: Config.bar.padding
+
     font {
         family: Config.bar.fontFamily
         pixelSize: Config.bar.fontSize

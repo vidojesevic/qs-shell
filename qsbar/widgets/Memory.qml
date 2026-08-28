@@ -25,6 +25,9 @@ Text {
     text: " " + usage + "%"
     color: Config.colors.cyan
 
+    leftPadding: Config.bar.padding
+    rightPadding: Config.bar.padding
+
     font {
         family: Config.bar.fontFamily
         pixelSize: Config.bar.fontSize

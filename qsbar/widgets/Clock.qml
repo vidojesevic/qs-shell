@@ -20,7 +20,7 @@ Rectangle {
         return new Date(viewYear, viewMonth, 1 - offset)
     }
 
-    implicitWidth: clockText.implicitWidth + 16
+    implicitWidth: clockText.implicitWidth
     implicitHeight: 24
 
     color: Config.colors.background
@@ -41,6 +41,9 @@ Rectangle {
         id: clockText
 
         anchors.fill: parent
+
+        leftPadding: Config.bar.padding + 6
+        rightPadding: Config.bar.padding + 6
 
         color: Config.colors.blue
 
@@ -105,7 +108,7 @@ Rectangle {
         }
 
         implicitWidth: 320
-        implicitHeight: 340
+        implicitHeight: 388
 
         visible: false
         color: "transparent"
@@ -291,7 +294,8 @@ Rectangle {
 
                             Layout.fillWidth: true
 
-                            implicitHeight: 30
+                            // 30px date number box, plus padding above and below.
+                            implicitHeight: 30 + Config.bar.padding * 2
                             radius: 5
 
                             color: isToday

@@ -10,10 +10,11 @@ const colors = {
 }
 
 const bar = {
-    // fontFamily: "JetBrainsMono Nerd Font",
-    fontFamily: "Ubuntu Mono",
+    fontFamily: "JetBrainsMono Nerd Font",
+    // fontFamily: "Ubuntu Mono",
     fontSize: 16,
-    height: 30
+    height: 30,
+    padding: 2
 }
 
 const notifications = {

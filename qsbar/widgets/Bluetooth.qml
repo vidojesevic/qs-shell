@@ -23,6 +23,9 @@ Text {
 
     color: Config.colors.blue
 
+    leftPadding: Config.bar.padding
+    rightPadding: Config.bar.padding
+
     font {
         family: Config.bar.fontFamily
         pixelSize: Config.bar.fontSize
