@@ -66,17 +66,25 @@ Variants {
 	    return "󰖐"
 	}
 
-	// Single Monitor
-	// property int wsStart: screen.name === "eDP-1" ? 1 : 9
-	// property int wsCount: screen.name === "eDP-1" ? 9 : 5
+	// Must match INTERNAL in ~/.config/hypr/configuration/monitors.lua.
+	readonly property string internalMonitor: "eDP-1"
 
-	// Work Monitor
-	property int wsStart: screen.name === "HDMI-A-2" ? 1 : 10
-	property int wsCount: screen.name === "HDMI-A-2" ? 9 : 5
+	// First external output, whatever it is called. Null when undocked.
+	readonly property var externalMonitor:
+	    Hyprland.monitors.values.find(
+		monitor => monitor.name !== root.internalMonitor
+	    ) ?? null
 
-	// Vladin monitori
-	// property int wsStart: screen.name === "DP-3" ? 1 : 10
-	// property int wsCount: screen.name === "DP-3" ? 9 : 5
+	// Laptop alone: 1-9 on the panel.
+	// External docked: 1-9 on the external, 10-14 on the panel.
+	readonly property int wsStart: {
+	    if (!root.externalMonitor)
+		return 1
+
+	    return root.screen.name === root.externalMonitor.name ? 1 : 10
+	}
+
+	readonly property int wsCount: root.wsStart === 1 ? 9 : 5
 
 	anchors {
 	    top: true
@@ -258,6 +266,14 @@ Variants {
 			color: Config.colors.muted
 		    }
 
+		    Mail {}
+
+		    Rectangle {
+			implicitWidth: 1
+			implicitHeight: 16
+			color: Config.colors.muted
+		    }
+
 		    Bluetooth {}
 
 		    Rectangle {
@@ -276,6 +292,14 @@ Variants {
 
 		    // Wi-Fi
 		    WiFi {}
+
+		    Rectangle {
+			implicitWidth: 1
+			implicitHeight: 16
+			color: Config.colors.muted
+		    }
+
+		    DisplayOptions {}
 
 		    Rectangle {
 			implicitWidth: 1
