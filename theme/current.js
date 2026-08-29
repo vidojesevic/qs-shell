@@ -1,1 +1,1 @@
-tokyonight.js
+onedark.js
