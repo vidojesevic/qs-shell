@@ -299,6 +299,14 @@ Variants {
 			color: Config.colors.muted
 		    }
 
+		    Screen {}
+
+		    Rectangle {
+			implicitWidth: 1
+			implicitHeight: 16
+			color: Config.colors.muted
+		    }
+
 		    DisplayOptions {}
 
 		    Rectangle {
