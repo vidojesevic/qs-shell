@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: switch.sh <catppuccin|dracula|tokyonight|ember>
+# Usage: switch.sh <catppuccin|onedark|dracula|tokyonight|ember>
 # Relinks theme/current.js + theme/wallpaper and restarts swaybg.
 # Quickshell reloads itself after this script exits (see ThemeSwitcher.qml).
 set -e
@@ -14,6 +14,7 @@ vscode="$(sed -n 's/^var vscode = "\(.*\)"/\1/p' "$dir/$name.js")"
 ghostty="$(sed -n 's/^var ghostty = "\(.*\)"/\1/p' "$dir/$name.js")"
 helium="$(sed -n 's/^var helium = "\(.*\)"/\1/p' "$dir/$name.js")"
 nvim="$(sed -n 's/^var nvim = "\(.*\)"/\1/p' "$dir/$name.js")"
+gtk_accent="$(sed -n 's/^var gtkAccent = "\(.*\)"/\1/p' "$dir/$name.js")"
 
 ln -sfn "$name.js" "$dir/current.js"
 ln -sfn "$HOME/.config/walls/$wall" "$dir/wallpaper"
@@ -42,6 +43,13 @@ echo "return \"$nvim\"" > "$HOME/.config/nvim/lua/config/theme.lua"
 for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
     [ -S "$sock" ] && nvim --server "$sock" --remote-expr "execute('colorscheme $nvim')" >/dev/null 2>&1 || true
 done
+
+# GTK4/libadwaita (Nautilus). Colors go in the user stylesheet; scheme and accent
+# are gsettings because libadwaita reads those itself. GTK4 caches the stylesheet
+# at startup, so running apps keep the old colors until a new window opens.
+"$dir/gtk.py" "$dir/$name.js"
+gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+gsettings set org.gnome.desktop.interface accent-color "$gtk_accent"
 
 # Manual use: reload running quickshell too.
 [ -n "$QS_RELOAD_SELF" ] || qs ipc call theme reload >/dev/null 2>&1 || true

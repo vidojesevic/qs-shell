@@ -1,10 +1,11 @@
 .pragma library
 
-var wallpaper = "catpuccin.jpg"
+var wallpaper = "clearing.png"
 var vscode = "Catppuccin Mocha"
 var ghostty = "Catppuccin Mocha"
 var helium = "#cba6f7"
 var nvim = "catppuccin"
+var gtkAccent = "purple"
 
 var colors = {
     background: "#1e1e2e",
@@ -22,4 +23,12 @@ var colors = {
     orange: "#fab387",
     accent: "#cba6f7",
     urgent: "#f38ba8"
+}
+
+// Font colors. One default, one active, one critical per theme.
+var text = {
+    normal: colors.foreground,
+    dim: colors.muted,
+    active: colors.accent,
+    critical: colors.red
 }

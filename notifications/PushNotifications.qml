@@ -92,7 +92,7 @@ Scope {
 				Text {
 				    Layout.fillWidth: true
 				    text: card.modelData.summary
-				    color: Config.colors.cyan
+				    color: Config.text.normal
 				    font.family: Config.bar.fontFamily
 				    font.pixelSize: Config.bar.fontSize
 				    font.bold: true
@@ -100,13 +100,13 @@ Scope {
 				}
 				Text {
 				    text: card.modelData.time
-				    color: Config.colors.foreground
+				    color: Config.text.dim
 				    font.pixelSize: Config.bar.fontSize - 3
 				    font.family: Config.bar.fontFamily
 				}
 				Text {
 				    text: "x"
-				    color: Config.colors.red
+				    color: Config.text.critical
 				    font.pixelSize: Config.bar.fontSize
 				    font.family: Config.bar.fontFamily
 				    MouseArea {
@@ -125,7 +125,7 @@ Scope {
 				text: card.modelData.body
 				visible: text !== ""
 
-				color: Config.colors.foreground
+				color: Config.text.normal
 				font.family: Config.bar.fontFamily
 				font.pixelSize: Config.bar.fontSize - 2
 

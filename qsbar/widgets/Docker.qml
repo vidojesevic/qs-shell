@@ -24,9 +24,9 @@ Text {
     property string lastSnapshot: ""
 
     text: "󰡨 " + runningCount
-    color: runningCount > 0
-        ? Config.colors.blue
-        : Config.colors.muted
+    color: dockerPopup.visible
+        ? Config.text.active
+        : (runningCount > 0 ? Config.text.normal : Config.text.dim)
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -331,7 +331,7 @@ Text {
 
                     Text {
                         text: "Docker"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -348,7 +348,7 @@ Text {
                         text: dockerRoot.runningCount + " / "
                             + dockerRoot.totalCount + " running"
 
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -384,7 +384,7 @@ Text {
                             visible: dockerRoot.groups.length === 0
 
                             text: "No containers"
-                            color: Config.colors.muted
+                            color: Config.text.dim
 
                             font {
                                 family: Config.bar.fontFamily
@@ -443,7 +443,7 @@ Text {
 
                                         Text {
                                             text: folded ? "" : ""
-                                            color: Config.colors.muted
+                                            color: Config.text.dim
 
                                             font {
                                                 family: Config.bar.fontFamily
@@ -458,8 +458,8 @@ Text {
                                             elide: Text.ElideRight
 
                                             color: upCount > 0
-                                                ? Config.colors.cyan
-                                                : Config.colors.foreground
+                                                ? Config.text.active
+                                                : Config.text.normal
 
                                             font {
                                                 family: Config.bar.fontFamily
@@ -472,7 +472,7 @@ Text {
                                             text: upCount + "/"
                                                 + modelData.containers.length
 
-                                            color: Config.colors.muted
+                                            color: Config.text.dim
 
                                             font {
                                                 family: Config.bar.fontFamily
@@ -485,7 +485,7 @@ Text {
                                             visible: composeWorking
 
                                             text: "󰔟"
-                                            color: Config.colors.yellow
+                                            color: Config.text.dim
 
                                             font {
                                                 family: Config.bar.fontFamily
@@ -507,8 +507,8 @@ Text {
 
                                             text: "up"
                                             color: upMouse.containsMouse
-                                                ? Config.colors.cyan
-                                                : Config.colors.muted
+                                                ? Config.text.active
+                                                : Config.text.dim
 
                                             font {
                                                 family: Config.bar.fontFamily
@@ -537,8 +537,8 @@ Text {
 
                                             text: "down"
                                             color: downMouse.containsMouse
-                                                ? Config.colors.red
-                                                : Config.colors.muted
+                                                ? Config.text.critical
+                                                : Config.text.dim
 
                                             font {
                                                 family: Config.bar.fontFamily
@@ -567,8 +567,8 @@ Text {
 
                                             text: "build"
                                             color: buildMouse.containsMouse
-                                                ? Config.colors.yellow
-                                                : Config.colors.muted
+                                                ? Config.text.active
+                                                : Config.text.dim
 
                                             font {
                                                 family: Config.bar.fontFamily
@@ -654,8 +654,8 @@ Text {
                                                 elide: Text.ElideRight
 
                                                 color: up
-                                                    ? Config.colors.foreground
-                                                    : Config.colors.muted
+                                                    ? Config.text.normal
+                                                    : Config.text.dim
 
                                                 font {
                                                     family: Config.bar.fontFamily
@@ -669,7 +669,7 @@ Text {
 
                                                 Layout.maximumWidth: 150
 
-                                                color: Config.colors.muted
+                                                color: Config.text.dim
 
                                                 font {
                                                     family: Config.bar.fontFamily
@@ -682,7 +682,7 @@ Text {
                                                 visible: working
 
                                                 text: "󰔟"
-                                                color: Config.colors.yellow
+                                                color: Config.text.dim
 
                                                 font {
                                                     family: Config.bar.fontFamily
@@ -704,8 +704,8 @@ Text {
 
                                                 text: "󰐊"
                                                 color: playMouse.containsMouse
-                                                    ? Config.colors.cyan
-                                                    : Config.colors.muted
+                                                    ? Config.text.active
+                                                    : Config.text.dim
 
                                                 font {
                                                     family: Config.bar.fontFamily
@@ -731,8 +731,8 @@ Text {
 
                                                 text: "󰓛"
                                                 color: stopMouse.containsMouse
-                                                    ? Config.colors.red
-                                                    : Config.colors.muted
+                                                    ? Config.text.critical
+                                                    : Config.text.dim
 
                                                 font {
                                                     family: Config.bar.fontFamily
@@ -758,8 +758,8 @@ Text {
 
                                                 text: "󰑓"
                                                 color: rebuildMouse.containsMouse
-                                                    ? Config.colors.yellow
-                                                    : Config.colors.muted
+                                                    ? Config.text.active
+                                                    : Config.text.dim
 
                                                 font {
                                                     family: Config.bar.fontFamily

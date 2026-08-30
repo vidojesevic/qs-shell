@@ -7,30 +7,57 @@ import QtQuick.Layouts
 
 import "../config.js" as Config
 
-// Modal theme picker. Toggle with: qs ipc call theme toggle
+// App launcher. Toggle with: qs ipc call launcher toggle
 PanelWindow {
-    id: themeMenu
+    id: launcher
 
-    readonly property string revealConfig: Quickshell.shellDir + "/theme/reveal.qml"
-    property string pendingTheme: ""
     property string query: ""
 
-    readonly property var themes: [
-        { name: "catppuccin", label: "Catppuccin", color: "#cba6f7" },
-        { name: "dracula",    label: "Dracula",    color: "#bd93f9" },
-        { name: "onedark",    label: "One Dark",   color: "#61afef" },
-        { name: "tokyonight", label: "Tokyo Night", color: "#7aa2f7" },
-        { name: "ember",      label: "Ember",      color: "#e6a44c" }
-    ]
+    readonly property var entries: DesktopEntries.applications.values
+        .filter(e => !e.noDisplay)
 
-    // Themes matching `query`; everything when it is empty.
+    // Entries matching `query`, best match first.
     readonly property var results: {
-        const q = themeMenu.query.trim().toLowerCase()
+        const q = launcher.query.trim().toLowerCase()
 
-        if (q === "") return themeMenu.themes
+        if (q === "") {
+            return launcher.entries
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name))
+        }
 
-        return themeMenu.themes.filter(t =>
-            t.label.toLowerCase().includes(q) || t.name.includes(q))
+        return launcher.entries
+            .map(e => ({ entry: e, rank: launcher.rank(e, q) }))
+            .filter(m => m.rank >= 0)
+            .sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name))
+            .map(m => m.entry)
+    }
+
+    // Match position decides rank; -1 means no match.
+    function rank(entry, q) {
+        const name = entry.name.toLowerCase()
+
+        if (name === q) return 0
+        if (name.startsWith(q)) return 1
+        if (name.includes(q)) return 2
+
+        if ((entry.genericName ?? "").toLowerCase().includes(q)) return 3
+        if ((entry.keywords ?? []).some(k => k.toLowerCase().includes(q))) return 4
+        if ((entry.comment ?? "").toLowerCase().includes(q)) return 5
+        if ((entry.execString ?? "").toLowerCase().includes(q)) return 6
+
+        return -1
+    }
+
+    function launch(entry) {
+        if (!entry) return
+
+        launcher.visible = false
+        entry.execute()
+    }
+
+    function close() {
+        launcher.visible = false
     }
 
     anchors {
@@ -46,14 +73,13 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
 
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "quickshell-theme"
-    // Exclusive so the search field gets every keystroke.
+    WlrLayershell.namespace: "quickshell-launcher"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
     // Fresh search every time it opens.
     onVisibleChanged: {
         if (visible) {
-            themeMenu.query = ""
+            launcher.query = ""
             search.text = ""
             list.currentIndex = 0
             search.forceActiveFocus()
@@ -61,92 +87,25 @@ PanelWindow {
     }
 
     IpcHandler {
-        target: "theme"
+        target: "launcher"
 
         function toggle(): void {
-            if (!themeMenu.visible) {
+            if (!launcher.visible) {
                 // Open on the focused monitor.
                 const focused = Hyprland.focusedMonitor
                 const match = Quickshell.screens.find(s => focused && s.name === focused.name)
-                themeMenu.screen = match ?? Quickshell.screens[0]
+                launcher.screen = match ?? Quickshell.screens[0]
             }
-            themeMenu.visible = !themeMenu.visible
+            launcher.visible = !launcher.visible
         }
 
-        function apply(name: string): void {
-            themeMenu.apply(name)
+        function open(): void {
+            if (!launcher.visible) toggle()
         }
 
-        // Called by the reveal instance once the screen is frozen.
-        function covered(): void {
-            if (themeMenu.pendingTheme === "") return
-            switchProc.command = [Quickshell.shellDir + "/theme/switch.sh", themeMenu.pendingTheme]
-            switchProc.running = true
+        function close(): void {
+            launcher.visible = false
         }
-
-        function reload(): void {
-            Quickshell.reload(false)
-        }
-
-        function current(): string {
-            return Config.colors.background
-        }
-    }
-
-    Process {
-        id: switchProc
-
-        // Script skips its own "qs ipc call theme reload"; we reload below.
-        environment: ({ QS_RELOAD_SELF: "1" })
-
-        // Script relinked theme + wallpaper; reload QML in place to pick it up.
-        // Screen is frozen by the reveal instance; new tree tells it to start.
-        onExited: {
-            persist.revealPending = true
-            Quickshell.reload(false)
-        }
-    }
-
-    // Survives Quickshell.reload().
-    PersistentProperties {
-        id: persist
-
-        reloadableId: "themeSwitcher"
-
-        property bool revealPending: false
-
-        // Fires in the new tree after values are restored from the old one.
-        onReloaded: {
-            if (revealPending) {
-                revealPending = false
-                revealStart.running = true
-            }
-        }
-    }
-
-    // Spawned by Hyprland, not by us, so it outlives this tree's reload.
-    Process {
-        id: revealProc
-
-        command: ["hyprctl", "dispatch", 'hl.dsp.exec_cmd("qs -p ' + themeMenu.revealConfig + '")']
-    }
-
-    Process {
-        id: revealStart
-
-        command: ["qs", "ipc", "-p", themeMenu.revealConfig, "call", "reveal", "start"]
-    }
-
-    function apply(name) {
-        if (!name) return
-
-        themeMenu.visible = false
-        themeMenu.pendingTheme = name
-        revealProc.running = true
-    }
-
-    function close() {
-        themeMenu.visible = false
     }
 
     BackgroundEffect.blurRegion: Region {
@@ -161,13 +120,16 @@ PanelWindow {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: themeMenu.close()
+            onClicked: launcher.close()
         }
 
         Rectangle {
-            anchors.centerIn: parent
+            id: panel
 
-            implicitWidth: 300
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: Math.round(parent.height * 0.18)
+
+            width: 640
             implicitHeight: layout.implicitHeight + 24
 
             radius: 8
@@ -220,18 +182,18 @@ PanelWindow {
                         }
 
                         onTextChanged: {
-                            themeMenu.query = text
+                            launcher.query = text
                             list.currentIndex = 0
                         }
 
-                        onAccepted: themeMenu.apply(list.currentTheme?.name)
+                        onAccepted: launcher.launch(list.currentEntry)
 
-                        Keys.onEscapePressed: themeMenu.close()
+                        Keys.onEscapePressed: launcher.close()
                         Keys.onUpPressed: list.step(-1)
                         Keys.onDownPressed: list.step(1)
 
                         Keys.onPressed: event => {
-                            // Emacs-style nav, same as the launcher.
+                            // Emacs-style nav, same as rofi.
                             if (event.modifiers & Qt.ControlModifier) {
                                 if (event.key === Qt.Key_N) {
                                     list.step(1)
@@ -247,7 +209,7 @@ PanelWindow {
                             anchors.fill: parent
                             visible: search.text === ""
 
-                            text: "Search themes"
+                            text: "Search applications"
                             color: Config.text.dim
 
                             font: search.font
@@ -256,7 +218,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: themeMenu.results.length
+                        text: launcher.results.length
                         color: Config.text.dim
 
                         font {
@@ -281,14 +243,14 @@ PanelWindow {
                         currentIndex = (currentIndex + delta + count) % count
                     }
 
-                    readonly property var currentTheme: currentIndex >= 0
-                        ? (themeMenu.results[currentIndex] ?? null)
+                    readonly property var currentEntry: currentIndex >= 0
+                        ? (launcher.results[currentIndex] ?? null)
                         : null
 
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(contentHeight, 300)
+                    Layout.preferredHeight: Math.min(contentHeight, 440)
 
-                    model: themeMenu.results
+                    model: launcher.results
                     clip: true
                     currentIndex: 0
                     highlightMoveDuration: 0
@@ -300,7 +262,7 @@ PanelWindow {
                         required property var modelData
 
                         width: list.width
-                        height: 36
+                        height: 44
 
                         radius: 4
                         color: list.currentIndex === row.index
@@ -309,27 +271,73 @@ PanelWindow {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 8
-                            spacing: 10
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 12
 
-                            Rectangle {
-                                implicitWidth: 14
-                                implicitHeight: 14
-                                radius: 7
-                                color: row.modelData.color
+                            Item {
+                                Layout.preferredWidth: 28
+                                Layout.preferredHeight: 28
+
+                                Image {
+                                    id: icon
+
+                                    anchors.fill: parent
+
+                                    // `true` checks the icon theme first, so a
+                                    // missing icon yields "" instead of a warning.
+                                    source: Quickshell.iconPath(row.modelData.icon, true)
+                                    sourceSize.width: 28
+                                    sourceSize.height: 28
+                                    asynchronous: true
+                                    visible: status === Image.Ready
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    visible: !icon.visible
+
+                                    text: "\uf1b2"
+                                    color: Config.text.dim
+
+                                    font {
+                                        family: Config.bar.fontFamily
+                                        pixelSize: 20
+                                    }
+                                }
                             }
 
-                            Text {
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                text: row.modelData.label
+                                spacing: 0
 
-                                color: list.currentIndex === row.index
-                                    ? Config.text.active
-                                    : Config.text.normal
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: row.modelData.name
 
-                                font {
-                                    family: Config.bar.fontFamily
-                                    pixelSize: Config.bar.fontSize
+                                    color: list.currentIndex === row.index
+                                        ? Config.text.active
+                                        : Config.text.normal
+                                    elide: Text.ElideRight
+
+                                    font {
+                                        family: Config.bar.fontFamily
+                                        pixelSize: Config.bar.fontSize
+                                    }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: text !== ""
+
+                                    text: row.modelData.genericName || row.modelData.comment || ""
+                                    color: Config.text.dim
+                                    elide: Text.ElideRight
+
+                                    font {
+                                        family: Config.bar.fontFamily
+                                        pixelSize: Config.bar.fontSize - 4
+                                    }
                                 }
                             }
                         }
@@ -340,7 +348,7 @@ PanelWindow {
                             cursorShape: Qt.PointingHandCursor
 
                             onPositionChanged: list.currentIndex = row.index
-                            onClicked: themeMenu.apply(row.modelData.name)
+                            onClicked: launcher.launch(row.modelData)
                         }
                     }
                 }

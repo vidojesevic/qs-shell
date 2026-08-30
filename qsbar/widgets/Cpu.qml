@@ -19,7 +19,7 @@ Text {
     property var lastTotal: []
 
     text: "󰍛 " + usage + "%"
-    color: Config.colors.yellow
+    color: cpuPopup.visible ? Config.text.active : Config.text.normal
 
     leftPadding: Config.bar.padding
     rightPadding: Config.bar.padding
@@ -251,7 +251,7 @@ Text {
 
                     Text {
                         text: "CPU"
-                        color: Config.colors.cyan
+                        color: Config.text.active
 
                         font {
                             family: Config.bar.fontFamily
@@ -270,8 +270,8 @@ Text {
                         text: "󰔏 " + cpuRoot.temperature + "°C"
 
                         color: cpuRoot.temperature >= 80
-                            ? Config.colors.red
-                            : Config.colors.yellow
+                            ? Config.text.critical
+                            : Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -285,7 +285,7 @@ Text {
                     Layout.fillWidth: true
 
                     text: cpuRoot.model
-                    color: Config.colors.muted
+                    color: Config.text.dim
                     elide: Text.ElideRight
 
                     font {
@@ -300,7 +300,7 @@ Text {
 
                     Text {
                         text: "󰍛 " + cpuRoot.usage + "%"
-                        color: Config.colors.yellow
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -311,7 +311,7 @@ Text {
 
                     Text {
                         text: cpuRoot.frequency.toFixed(2) + " GHz"
-                        color: Config.colors.blue
+                        color: Config.text.normal
 
                         font {
                             family: Config.bar.fontFamily
@@ -326,7 +326,7 @@ Text {
 
                     Text {
                         text: "load " + cpuRoot.loadAverage
-                        color: Config.colors.muted
+                        color: Config.text.dim
 
                         font {
                             family: Config.bar.fontFamily
@@ -343,7 +343,7 @@ Text {
 
                 Text {
                     text: cpuRoot.coreCount + " threads"
-                    color: Config.colors.muted
+                    color: Config.text.dim
 
                     font {
                         family: Config.bar.fontFamily
@@ -372,7 +372,7 @@ Text {
                                 Layout.preferredWidth: 26
 
                                 text: "C" + core
-                                color: Config.colors.muted
+                                color: Config.text.dim
 
                                 font {
                                     family: Config.bar.fontFamily
@@ -410,7 +410,7 @@ Text {
                                 horizontalAlignment: Text.AlignRight
 
                                 text: usage + "%"
-                                color: Config.colors.foreground
+                                color: Config.text.normal
 
                                 font {
                                     family: Config.bar.fontFamily
@@ -429,7 +429,7 @@ Text {
 
                 Text {
                     text: "Top processes"
-                    color: Config.colors.muted
+                    color: Config.text.dim
 
                     font {
                         family: Config.bar.fontFamily
@@ -451,7 +451,7 @@ Text {
                             Layout.fillWidth: true
 
                             text: name
-                            color: Config.colors.foreground
+                            color: Config.text.normal
                             elide: Text.ElideRight
 
                             font {
@@ -462,7 +462,7 @@ Text {
 
                         Text {
                             text: share + "%"
-                            color: Config.colors.yellow
+                            color: Config.text.normal
 
                             font {
                                 family: Config.bar.fontFamily

@@ -58,7 +58,7 @@ Scope {
 		    Text {
 			Layout.fillWidth: true
 			text: "Notifications"
-			color: Config.colors.cyan
+			color: Config.text.active
 			font.family: Config.bar.fontFamily
 			font.pixelSize: Config.bar.fontSize + 2
 			font.bold: true
@@ -67,7 +67,7 @@ Scope {
 		    Text {
 			text: "Clear all"
 			visible: historyModel.count > 0
-			color: Config.colors.red
+			color: Config.text.critical
 
 			MouseArea {
 			    anchors.fill: parent
@@ -83,7 +83,7 @@ Scope {
 		    visible: historyModel.count === 0
 
 		    text: "No notifications"
-		    color: Config.colors.muted
+		    color: Config.text.dim
 
 		    horizontalAlignment: Text.AlignHCenter
 		    verticalAlignment: Text.AlignVCenter
@@ -139,7 +139,7 @@ Scope {
 				    Text {
 					Layout.fillWidth: true
 					text: summary
-					color: Config.colors.cyan
+					color: Config.text.normal
 					font.family: Config.bar.fontFamily
 					font.pixelSize: Config.bar.fontSize
 					font.bold: true
@@ -147,12 +147,12 @@ Scope {
 				    }
 				    Text {
 					text: time
-					color: Config.colors.foreground
+					color: Config.text.dim
 					font.pixelSize: Config.bar.fontSize - 3
 				    }
 				    Text {
 					text: "x"
-					color: Config.colors.red
+					color: Config.text.critical
 					font.pixelSize: Config.bar.fontSize
 					font.family: Config.bar.fontFamily
 					MouseArea {
@@ -169,7 +169,7 @@ Scope {
 					Layout.fillWidth: true
 					text: body
 					visible: body !== ""
-					color: Config.colors.foreground
+					color: Config.text.normal
 					wrapMode: Text.NoWrap
 					font.family: Config.bar.fontFamily
 					font.pixelSize: Config.bar.fontSize - 2
@@ -179,7 +179,7 @@ Scope {
 				    Text {
 					visible: appName !== ""
 					text: appName
-					color: Config.colors.foreground
+					color: Config.text.dim
 					font.family: Config.bar.fontFamily
 					font.pixelSize: Config.bar.fontSize - 2
 				    }

@@ -5,6 +5,7 @@ var vscode = "Gruvbox Material Dark"
 var ghostty = "ember"
 var helium = "#e6a44c"
 var nvim = "ember"
+var gtkAccent = "orange"
 
 var colors = {
     background: "#16130f",
@@ -22,4 +23,12 @@ var colors = {
     orange: "#e07a3f",
     accent: "#e6a44c",
     urgent: "#d65d4e"
+}
+
+// Font colors. One default, one active, one critical per theme.
+var text = {
+    normal: colors.foreground,
+    dim: colors.muted,
+    active: colors.accent,
+    critical: colors.red
 }

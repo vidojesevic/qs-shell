@@ -5,6 +5,7 @@ var vscode = "Dracula Theme"
 var ghostty = "Dracula"
 var helium = "#bd93f9"
 var nvim = "dracula"
+var gtkAccent = "purple"
 
 var colors = {
     background: "#282a36",
@@ -22,4 +23,12 @@ var colors = {
     orange: "#ffb86c",
     accent: "#bd93f9",
     urgent: "#ff5555"
+}
+
+// Font colors. One default, one active, one critical per theme.
+var text = {
+    normal: colors.foreground,
+    dim: colors.muted,
+    active: colors.accent,
+    critical: colors.red
 }
