@@ -1,6 +1,7 @@
 .pragma library
 
-var wallpaper = "dracula.jpg"
+// var wallpaper = "dracula.jpg"
+var wallpaper = "dracula-boc.png"
 var vscode = "Dracula Theme"
 var ghostty = "Dracula"
 var helium = "#bd93f9"

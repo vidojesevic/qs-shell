@@ -22,7 +22,7 @@ ln -sfn "$HOME/.config/walls/$wall" "$dir/wallpaper"
 # Start the new swaybg before killing the old one. A gap with no wallpaper
 # shows Hyprland's built-in default for a frame.
 old="$(pgrep -x swaybg || true)"
-setsid -f swaybg -i "$dir/wallpaper" >/dev/null 2>&1
+setsid -f swaybg -m fill -i "$dir/wallpaper" >/dev/null 2>&1
 sleep 0.3
 [ -n "$old" ] && kill $old 2>/dev/null || true
 

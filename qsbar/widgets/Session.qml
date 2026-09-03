@@ -138,7 +138,16 @@ Text {
                                     icon: "󰤄",
                                     label: "Suspend",
                                     accent: Config.text.normal,
-                                    command: ["loginctl", "suspend"]
+                                    // Lock before suspending, or the machine
+                                    // resumes unlocked. hyprlock has no
+                                    // --daemonize, so wait for it to appear and
+                                    // bail if it never does.
+                                    command: ["sh", "-c",
+                                        "pgrep -x hyprlock >/dev/null || hyprlock &\n"
+                                        + "for _ in $(seq 30); do pgrep -x hyprlock >/dev/null && break; sleep 0.1; done\n"
+                                        + "pgrep -x hyprlock >/dev/null || exit 1\n"
+                                        + "loginctl suspend"
+                                    ]
                                 },
                                 {
                                     icon: "󰍃",
