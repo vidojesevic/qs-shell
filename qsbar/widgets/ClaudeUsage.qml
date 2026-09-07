@@ -21,6 +21,9 @@ Text {
     property string blockEnd: ""
     property bool blockActive: false
 
+    // [{ label, tokens, limit, percent }]
+    property var gauges: []
+
     // [{ name, tokens }]
     property var models: []
     property var projects: []
@@ -86,6 +89,7 @@ Text {
                 claudeRoot.burnPerMinute = data.burnPerMinute || 0
                 claudeRoot.blockStart = data.blockStart || ""
                 claudeRoot.blockEnd = data.blockEnd || ""
+                claudeRoot.gauges = data.gauges
                 claudeRoot.models = data.models
                 claudeRoot.projects = data.projects
 
@@ -157,7 +161,7 @@ Text {
         }
 
         implicitWidth: 460
-        implicitHeight: 320
+        implicitHeight: 400
 
         visible: false
         color: "transparent"
@@ -229,62 +233,87 @@ Text {
                     }
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 16
+                Repeater {
+                    model: claudeRoot.gauges
 
-                    Text {
-                        text: "󰚩 " + claudeRoot.percent + "%"
+                    delegate: ColumnLayout {
+                        id: gauge
 
-                        color: claudeRoot.danger
-                            ? Config.text.critical
-                            : Config.text.normal
+                        required property var modelData
 
-                        font {
-                            family: Config.bar.fontFamily
-                            pixelSize: Config.bar.fontSize + 4
-                            bold: true
-                        }
-                    }
+                        readonly property bool over: modelData.percent >= claudeRoot.dangerLevel
 
-                    Text {
-                        text: claudeRoot.compact(claudeRoot.tokens)
-                            + " / " + claudeRoot.compact(claudeRoot.limit) + " tokens"
-
-                        color: Config.text.normal
-
-                        font {
-                            family: Config.bar.fontFamily
-                            pixelSize: Config.bar.fontSize
-                            bold: true
-                        }
-                    }
-
-                    Item {
                         Layout.fillWidth: true
-                    }
-                }
+                        spacing: 3
 
-                Rectangle {
-                    Layout.fillWidth: true
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
 
-                    implicitHeight: 8
-                    radius: 4
-                    color: Config.colors.muted
+                            Text {
+                                text: modelData.label
+                                color: Config.text.normal
 
-                    Rectangle {
-                        width: parent.width * Math.min(claudeRoot.percent, 100) / 100
-                        height: parent.height
+                                font {
+                                    family: Config.bar.fontFamily
+                                    pixelSize: Config.bar.fontSize - 1
+                                    bold: true
+                                }
+                            }
 
-                        radius: 4
+                            Text {
+                                text: claudeRoot.compact(modelData.tokens)
+                                    + " / " + claudeRoot.compact(modelData.limit)
 
-                        color: claudeRoot.danger
-                            ? Config.colors.red
-                            : Config.colors.purple
+                                color: Config.text.dim
 
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: 300
+                                font {
+                                    family: Config.bar.fontFamily
+                                    pixelSize: Config.bar.fontSize - 3
+                                }
+                            }
+
+                            Item {
+                                Layout.fillWidth: true
+                            }
+
+                            Text {
+                                text: modelData.percent + "%"
+
+                                color: gauge.over
+                                    ? Config.text.critical
+                                    : Config.text.normal
+
+                                font {
+                                    family: Config.bar.fontFamily
+                                    pixelSize: Config.bar.fontSize
+                                    bold: true
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+
+                            implicitHeight: 8
+                            radius: 4
+                            color: Config.colors.muted
+
+                            Rectangle {
+                                width: parent.width * Math.min(modelData.percent, 100) / 100
+                                height: parent.height
+
+                                radius: 4
+
+                                color: gauge.over
+                                    ? Config.colors.red
+                                    : Config.colors.purple
+
+                                Behavior on width {
+                                    NumberAnimation {
+                                        duration: 300
+                                    }
+                                }
                             }
                         }
                     }

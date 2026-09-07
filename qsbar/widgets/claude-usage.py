@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Claude Code token usage for the active 5 hour limit window.
+"""Claude Code token usage for the session and weekly limit windows.
 
-Reads the local session transcripts, groups assistant replies into 5 hour
-blocks and prints the active block as JSON for the bar widget. The limit is
-calibrated from the biggest block seen so far, because the plan quota is not
-written anywhere on disk.
+Reads the local session transcripts and prints three gauges as JSON for the
+bar widget: the active 5 hour block, the rolling 7 day total and the rolling
+7 day total for Fable models. Limits are calibrated from the biggest window
+seen so far, because the plan quota is not written anywhere on disk.
 """
 
 import json
@@ -13,10 +13,24 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 BLOCK = timedelta(hours=5)
+WEEK = timedelta(days=7)
 PROJECTS = os.path.expanduser("~/.claude/projects")
 
-# Used until enough history exists to calibrate a real ceiling.
-FALLBACK_LIMIT = 20_000_000
+# Limits count a token by what it costs, not by its raw count. Cache reads are
+# roughly a tenth of an input token and output is roughly five times one, and
+# almost every token here is a cache read, so summing them raw overstates the
+# usage about seven times over.
+WEIGHT_INPUT = 1.0
+WEIGHT_OUTPUT = 5.0
+WEIGHT_CACHE_WRITE = 1.25
+WEIGHT_CACHE_READ = 0.1
+
+# Quotas are never written to disk, so they are set by hand. They are weighted
+# tokens, not raw ones. Tune them against what "/usage" reports inside Claude
+# Code: divide this widget's token figure by the percent that "/usage" shows.
+SESSION_LIMIT = 25_000_000
+WEEK_LIMIT = 1_000_000_000
+FABLE_WEEK_LIMIT = 200_000_000
 
 
 def entries():
@@ -60,11 +74,13 @@ def entries():
 
                     seen.add(key)
 
-                    tokens = (
-                        usage.get("input_tokens", 0)
-                        + usage.get("output_tokens", 0)
+                    tokens = round(
+                        usage.get("input_tokens", 0) * WEIGHT_INPUT
+                        + usage.get("output_tokens", 0) * WEIGHT_OUTPUT
                         + usage.get("cache_creation_input_tokens", 0)
+                        * WEIGHT_CACHE_WRITE
                         + usage.get("cache_read_input_tokens", 0)
+                        * WEIGHT_CACHE_READ
                     )
 
                     yield (
@@ -101,16 +117,47 @@ def blocks(items):
     return result
 
 
+def windows(items, span, now):
+    """Sum tokens per span, counting back from now. First entry is current."""
+    result = []
+
+    for when, _model, tokens, _project in items:
+        index = int((now - when) / span)
+
+        while len(result) <= index:
+            result.append(0)
+
+        result[index] += tokens
+
+    return result
+
+
+def gauge(label, totals, limit):
+    """Current window against a fixed quota."""
+    current = totals[0] if totals else 0
+
+    return {
+        "label": label,
+        "tokens": current,
+        "limit": limit,
+        "percent": round(100 * current / limit),
+    }
+
+
 def main():
-    found = blocks(sorted(entries(), key=lambda item: item[0]))
+    items = sorted(entries(), key=lambda item: item[0])
+    found = blocks(items)
     now = datetime.now(timezone.utc)
 
-    active = found[-1] if found and now < found[-1]["end"] else None
+    fable = [item for item in items if "fable" in item[1]]
 
-    # Calibrate on completed blocks, so the active one cannot raise its own bar.
-    past = [block["tokens"] for block in found if block is not active]
-    limit = max(past) if past else 0
-    limit = max(limit, FALLBACK_LIMIT)
+    gauges = [
+        gauge("Weekly (7 day)", windows(items, WEEK, now), WEEK_LIMIT),
+        gauge("Weekly Fable", windows(fable, WEEK, now), FABLE_WEEK_LIMIT),
+    ]
+
+    active = found[-1] if found and now < found[-1]["end"] else None
+    limit = SESSION_LIMIT
 
     if not active:
         print(json.dumps({
@@ -122,6 +169,9 @@ def main():
             "remainingMinutes": 0,
             "models": [],
             "projects": [],
+            "gauges": [
+                {"label": "Session (5h)", "tokens": 0, "limit": limit, "percent": 0},
+            ] + gauges,
         }))
         return
 
@@ -131,6 +181,13 @@ def main():
     def rank(counts):
         pairs = sorted(counts.items(), key=lambda pair: -pair[1])
         return [{"name": name, "tokens": value} for name, value in pairs[:4]]
+
+    session = {
+        "label": "Session (5h)",
+        "tokens": tokens,
+        "limit": limit,
+        "percent": round(100 * tokens / limit),
+    }
 
     print(json.dumps({
         "active": True,
@@ -144,6 +201,7 @@ def main():
         "burnPerMinute": round(tokens / elapsed),
         "models": rank(active["models"]),
         "projects": rank(active["projects"]),
+        "gauges": [session] + gauges,
     }))
 
 
