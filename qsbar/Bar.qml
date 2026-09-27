@@ -189,6 +189,14 @@ Variants {
 			color: Config.colors.muted
 		    }
 
+		    ClaudeUsage {}
+
+		    Rectangle {
+			implicitWidth: 1
+			implicitHeight: 16
+			color: Config.colors.muted
+		    }
+
 		    KeyboardLayout {}
 
 		    Rectangle {

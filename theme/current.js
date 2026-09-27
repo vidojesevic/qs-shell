@@ -1,1 +1,1 @@
-onedark.js
+catppuccin.js

@@ -1,6 +1,7 @@
 .pragma library
 
-var wallpaper = "clearing.png"
+// var wallpaper = "clearing.png"
+var wallpaper = "catpuccin-boc.png"
 var vscode = "Catppuccin Mocha"
 var ghostty = "Catppuccin Mocha"
 var helium = "#cba6f7"

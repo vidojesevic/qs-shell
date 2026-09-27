@@ -1,6 +1,7 @@
 .pragma library
 
-var wallpaper = "ember.jpg"
+// var wallpaper = "ember.jpg"
+var wallpaper = "ember-boc.png"
 var vscode = "Gruvbox Material Dark"
 var ghostty = "ember"
 var helium = "#e6a44c"

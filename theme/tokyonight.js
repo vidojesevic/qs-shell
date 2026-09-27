@@ -1,6 +1,7 @@
 .pragma library
 
-var wallpaper = "tokyonight.jpg"
+// var wallpaper = "tokyonight.jpg"
+var wallpaper = "tokyonight-boc.png"
 var vscode = "Tokyo Night"
 var ghostty = "TokyoNight"
 var helium = "#7aa2f7"

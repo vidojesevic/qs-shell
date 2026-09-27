@@ -54,7 +54,7 @@ Text {
 
     /*
      * Switch output: make the sink default, then move every playing
-     * stream onto it, the way pavucontrol does.
+     * stream onto it.
      */
     function selectSink(name) {
         Quickshell.execDetached([
@@ -130,8 +130,22 @@ Text {
 
                 sinks.clear()
 
+                const seen = {}
+
                 for (let i = 0; i < list.length; i++) {
                     const sink = list[i]
+
+                    /*
+                     * PipeWire can expose several nodes under one Pulse
+                     * name, each with its own volume. pactl resolves a
+                     * name to the first of them, so keep the first entry
+                     * and drop the stale duplicates behind it.
+                     */
+                    if (seen[sink.name])
+                        continue
+
+                    seen[sink.name] = true
+
                     const channels = Object.keys(sink.volume)
 
                     let percent = 0
@@ -316,7 +330,16 @@ Text {
                         to: 100
                         stepSize: 1
 
-                        value: volumeRoot.volumePercent
+                        /*
+                         * A drag assigns value directly, which would kill
+                         * a plain binding; rebind once the drag ends.
+                         */
+                        Binding {
+                            target: volumeSlider
+                            property: "value"
+                            value: volumeRoot.volumePercent
+                            when: !volumeSlider.pressed
+                        }
 
                         onMoved: {
                             popupCloseTimer.restart()

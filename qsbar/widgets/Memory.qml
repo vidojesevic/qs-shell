@@ -164,7 +164,7 @@ Text {
         }
 
         implicitWidth: 460
-        implicitHeight: 340
+        implicitHeight: 360
 
         visible: false
         color: "transparent"
@@ -303,8 +303,8 @@ Text {
                 GridLayout {
                     Layout.fillWidth: true
 
-                    columns: 4
-                    columnSpacing: 12
+                    columns: 2
+                    columnSpacing: 16
                     rowSpacing: 4
 
                     Repeater {

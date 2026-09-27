@@ -4,13 +4,14 @@ Hyprland bar and notification daemon built with [Quickshell](https://quickshell.
 
 ## Bar
 
-Workspaces (per-monitor), weather, clock, keyboard layout, CPU, memory, Docker, Bluetooth, WiFi, volume, battery, session.
+Workspaces (per-monitor), weather, clock, keyboard layout, CPU, memory, Docker, Claude usage, Bluetooth, WiFi, volume, battery, session.
 
 Most widgets open a popup on click — not just a readout:
 
 - **WiFi** — scan, connect, disconnect, toggle radio (`nmcli`)
 - **Bluetooth** — pair, connect, trust, toggle adapter
 - **Docker** — containers grouped by compose project, start/stop/restart
+- **Claude usage** — tokens spent in the active 5 hour window, per model and per project. Turns red and sends a desktop warning past 80%
 - **Volume** — per-sink and per-app sliders, output switching (`pactl`)
 - **CPU / Memory / Battery** — live graphs, per-core load, top processes
 - **Clock** — calendar
@@ -27,7 +28,7 @@ git clone <repo> ~/.config/quickshell
 qs
 ```
 
-Requires: Hyprland, Quickshell, a Nerd Font. Optional per widget: `nmcli`, `pactl`, `docker`, `curl`.
+Requires: Hyprland, Quickshell, a Nerd Font. Optional per widget: `nmcli`, `pactl`, `docker`, `curl`, `python3`, `notify-send`.
 
 ## Config
 
