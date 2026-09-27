@@ -4,11 +4,13 @@ import Quickshell.Services.Notifications
 import QtQuick
 import Quickshell.Io
 import QtQuick.Layouts
+import Quickshell.Hyprland
 
 import "../config.js" as Config
 
 Scope {
     property var notificationServer
+    property var focusApp
     PanelWindow {
 	anchors {
 	    bottom: true
@@ -18,6 +20,14 @@ Scope {
 	margins {
 	    bottom: 16
 	    right: 16
+	}
+
+	// Pop up wherever the user is looking, not on a fixed monitor.
+	screen: {
+	    const focused = Hyprland.focusedMonitor
+	    return Quickshell.screens.find(
+		s => focused && s.name === focused.name)
+		?? Quickshell.screens[0]
 	}
 
 	color: "transparent"
@@ -39,6 +49,10 @@ Scope {
 
 		    required property var modelData
 
+		    // Notification has no time field, so stamp it on arrival.
+		    readonly property string time:
+		    Qt.formatDateTime(new Date(), "HH:mm:ss")
+
 		    Layout.fillWidth: true
 		    implicitHeight: cardRow.implicitHeight + 20
 
@@ -57,6 +71,15 @@ Scope {
 
 			onTriggered: {
 			    card.modelData.expire()
+			}
+		    }
+
+		    MouseArea {
+			anchors.fill: parent
+			onClicked: {
+			    focusApp(card.modelData.appName,
+				     card.modelData.desktopEntry)
+			    card.modelData.dismiss()
 			}
 		    }
 
@@ -99,7 +122,7 @@ Scope {
 				    elide: Text.ElideRight
 				}
 				Text {
-				    text: card.modelData.time
+				    text: card.time
 				    color: Config.text.dim
 				    font.pixelSize: Config.bar.fontSize - 3
 				    font.family: Config.bar.fontFamily

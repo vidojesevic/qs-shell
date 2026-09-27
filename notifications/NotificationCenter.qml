@@ -12,12 +12,18 @@ Scope {
 
     property var historyModel
     property bool centerOpen
+    property var focusApp
+
+    function setOpen(open: bool): void {
+	root.centerOpen = open
+	if (open) autoClose.restart(); else autoClose.stop()
+    }
 
     IpcHandler {
 	target: "notifications"
-	function toggle(): void { root.centerOpen = !root.centerOpen }
-	function show(): void { root.centerOpen = true }
-	function hide(): void { root.centerOpen = false }
+	function toggle(): void { root.setOpen(!root.centerOpen) }
+	function show(): void { root.setOpen(true) }
+	function hide(): void { root.setOpen(false) }
     }
 
     // notification_center
@@ -34,9 +40,13 @@ Scope {
 	exclusionMode: ExclusionMode.Ignore
 
 
+	// The window outlives every open, so a plain running: true would fire
+	// once and never again. A stopped Timer also keeps its elapsed time, so
+	// a running: binding would close the panel right after the pointer
+	// leaves. Drive it from the two events instead, always with restart().
 	Timer {
+	    id: autoClose
 	    interval: 10000
-	    running: true
 	    onTriggered: root.centerOpen = false
 	}
 
@@ -45,6 +55,11 @@ Scope {
 	    border.width: 1
 	    color: Config.colors.background
 	    border.color: Config.colors.purple
+
+	    HoverHandler {
+		onHoveredChanged:
+		hovered ? autoClose.stop() : autoClose.restart()
+	    }
 
 	    ColumnLayout {
 		id: centerCol
@@ -114,6 +129,7 @@ Scope {
 			required property string appName
 			required property int urgency
 			required property string time
+			required property string desktopEntry
 
 			// Layout.fillWidth: true
 			// Layout.preferredHeight: 60
@@ -125,6 +141,15 @@ Scope {
 			border.color: urgency === NotificationUrgency.Critical
 			    ? Config.colors.red
 			    : Config.colors.purple
+
+			MouseArea {
+			    anchors.fill: parent
+			    onClicked: {
+				focusApp(appName, desktopEntry)
+				root.setOpen(false)
+				historyModel.remove(index)
+			    }
+			}
 
 			RowLayout { 
 			    anchors.fill: parent
@@ -185,11 +210,6 @@ Scope {
 				    }
 				}
 			    }
-			}
-
-			MouseArea {
-			    anchors.fill: parent
-			    onClicked: historyModel.remove(index)
 			}
 		    }
 		}
