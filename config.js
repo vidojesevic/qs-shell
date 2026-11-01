@@ -11,6 +11,40 @@ const bar = {
     padding: 2
 }
 
+/**
+ * Monitors
+ * @description internal must match INTERNAL in
+ *              ~/.config/hypr/configuration/monitors.lua.
+ */
+const monitors = {
+    internal: "eDP-1"
+}
+
+/**
+ * Bar widgets
+ * @description enabled: false hides a widget and its separator.
+ *              workspaces and clock stay on. refresh is in seconds.
+ */
+const widgets = {
+    workspaces: { enabled: true },
+    clock: { enabled: true },
+    cpu: { enabled: true },
+    memory: { enabled: true },
+    gpu: { enabled: true },
+    battery: { enabled: true },
+    docker: { enabled: true },
+    claude: { enabled: true, dangerLevel: 80, refresh: 60 },
+    keyboard: { enabled: true },
+    weather: { enabled: true, city: "Belgrade", refresh: 600 },
+    mail: { enabled: true, refresh: 60, inboxOnly: true },
+    bluetooth: { enabled: true },
+    volume: { enabled: true },
+    wifi: { enabled: true },
+    screen: { enabled: true },
+    display: { enabled: true },
+    session: { enabled: true }
+}
+
 const notifications = {
     timeout: 5000
 }

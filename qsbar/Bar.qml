@@ -22,8 +22,7 @@ Variants {
 
 	property string keyLayout: "en_US"
 
-	// Must match INTERNAL in ~/.config/hypr/configuration/monitors.lua.
-	readonly property string internalMonitor: "eDP-1"
+	readonly property string internalMonitor: Config.monitors.internal
 
 	// First external output, whatever it is called. Null when undocked.
 	readonly property var externalMonitor:
@@ -42,6 +41,21 @@ Variants {
 
 	readonly property int wsCount: root.wsStart === 1 ? 9 : 5
 
+	// Right side widgets, bar order. Keys of Config.widgets.
+	readonly property var systemWidgets: [
+	    "cpu", "memory", "gpu", "battery", "docker", "claude", "keyboard",
+	    "weather", "mail", "bluetooth", "volume", "wifi", "screen",
+	    "display", "session"
+	]
+
+	// A separator goes before a widget when that widget and one before it are on.
+	function separatorBefore(key) {
+	    const before = root.systemWidgets.slice(0, root.systemWidgets.indexOf(key))
+
+	    return Config.widgets[key].enabled
+		&& before.some(other => Config.widgets[other].enabled)
+	}
+
 	anchors {
 	    top: true
 	    left: true
@@ -49,7 +63,7 @@ Variants {
 	}
 
 
-	implicitHeight: 30
+	implicitHeight: Config.bar.height
 	color: "transparent"
 
 	RowLayout {
@@ -113,120 +127,163 @@ Variants {
 		    anchors.centerIn: parent
 		    spacing: 8
 
-		    Cpu {}
+		    Cpu {
+			visible: Config.widgets.cpu.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("memory")
 		    }
 
-		    Memory {}
+		    Memory {
+			visible: Config.widgets.memory.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("gpu")
 		    }
 
-		    Gpu {}
+		    Gpu {
+			visible: Config.widgets.gpu.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("battery")
 		    }
 
-		    Battery {}
+		    Battery {
+			visible: Config.widgets.battery.enabled
+		    }
 
 		    Rectangle {
 		    	implicitWidth: 1
 		    	implicitHeight: 16
 		    	color: Config.colors.muted
+		    	visible: root.separatorBefore("docker")
 		    }
 
-		    Docker {}
+		    Docker {
+			visible: Config.widgets.docker.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("claude")
 		    }
 
-		    ClaudeUsage {}
+		    ClaudeUsage {
+			visible: Config.widgets.claude.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("keyboard")
 		    }
 
-		    KeyboardLayout {}
+		    KeyboardLayout {
+			visible: Config.widgets.keyboard.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("weather")
 		    }
 
-		    Weather {}
+		    Weather {
+			visible: Config.widgets.weather.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("mail")
 		    }
 
-		    Mail {}
+		    Mail {
+			visible: Config.widgets.mail.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("bluetooth")
 		    }
 
-		    Bluetooth {}
+		    Bluetooth {
+			visible: Config.widgets.bluetooth.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("volume")
 		    }
 
-		    Volume {}
+		    Volume {
+			visible: Config.widgets.volume.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("wifi")
 		    }
 
 		    // Wi-Fi
-		    WiFi {}
-
-		    Rectangle {
-			implicitWidth: 1
-			implicitHeight: 16
-			color: Config.colors.muted
+		    WiFi {
+			visible: Config.widgets.wifi.enabled
 		    }
 
-		    Screen {}
-
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("screen")
 		    }
 
-		    DisplayOptions {}
+		    Screen {
+			visible: Config.widgets.screen.enabled
+		    }
 
 		    Rectangle {
 			implicitWidth: 1
 			implicitHeight: 16
 			color: Config.colors.muted
+			visible: root.separatorBefore("display")
+		    }
+
+		    DisplayOptions {
+			visible: Config.widgets.display.enabled
+		    }
+
+		    Rectangle {
+			implicitWidth: 1
+			implicitHeight: 16
+			color: Config.colors.muted
+			visible: root.separatorBefore("session")
 		    }
 
 		    Session {
+			visible: Config.widgets.session.enabled
 			targetScreen: root.screen
 		    }
 		}
