@@ -6,6 +6,7 @@ import "notifications"
 import "perun-launcher"
 import "qsbar"
 import "recording"
+import "screensaver"
 import "theme"
 
 ShellRoot {
@@ -16,6 +17,22 @@ ShellRoot {
 
     Process {
         id: reloadNotify
+    }
+
+    // Manual reload, for when the file watcher misses a change:
+    // qs ipc call shell reload
+    IpcHandler {
+        target: "shell"
+
+        function reload(): void { Quickshell.reload(true) }
+    }
+
+    // Quickshell only watches .qml files, not JS imports, so saving
+    // config.js would not reload without this.
+    FileView {
+        path: Quickshell.shellDir + "/config.js"
+        watchChanges: true
+        onFileChanged: Quickshell.reload(false)
     }
 
     // Replace the built in reload toast with notify-send, so reload messages
@@ -62,4 +79,6 @@ ShellRoot {
     Launcher {}
 
     RecordingHud {}
+
+    Screensaver {}
 }
