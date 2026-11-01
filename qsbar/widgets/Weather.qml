@@ -8,7 +8,7 @@ import "../../config.js" as Config
 Text {
     id: weatherRoot
 
-    property string city: "Belgrade"
+    property string city: Config.widgets.weather.city
 
     property string location: ""
     property string condition: ""
@@ -194,7 +194,7 @@ Text {
     }
 
     Timer {
-        interval: 600000
+        interval: Config.widgets.weather.refresh * 1000
         running: true
         repeat: true
 

@@ -9,7 +9,7 @@ Text {
     id: claudeRoot
 
     // Threshold for the danger styling and the desktop warning.
-    property int dangerLevel: 80
+    property int dangerLevel: Config.widgets.claude.dangerLevel
 
     property int tokens: 0
     property int limit: 0
@@ -117,7 +117,7 @@ Text {
     }
 
     Timer {
-        interval: 60000
+        interval: Config.widgets.claude.refresh * 1000
         running: true
         repeat: true
 
