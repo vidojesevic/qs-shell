@@ -23,6 +23,32 @@ PanelWindow {
 
     property int current: 0
 
+    // Unsaved changes in the current section: { key path: value }. Leaving
+    // the section asks to save or discard them first.
+    property var pending: ({})
+    readonly property int dirtyCount: Object.keys(pending).length
+
+    // The save/discard prompt is open. target is where to go after it: a
+    // section index, or -1 to close.
+    property bool asking: false
+    property int target: -1
+
+    // Pane content per section. Sections without a page show an empty pane.
+    readonly property var pages: ({
+        Notifications: notificationsPage
+    })
+
+    Component {
+        id: notificationsPage
+
+        NotificationsSection {
+            form: settings
+        }
+    }
+
+    property string status: ""
+    property color statusColor: Config.colors.green
+
     anchors {
         top: true
         bottom: true
@@ -44,17 +70,22 @@ PanelWindow {
             keys.forceActiveFocus()
     }
 
+    // The old section's controls are gone; take focus back from them.
+    onCurrentChanged: keys.forceActiveFocus()
+
     IpcHandler {
         target: "settings"
 
         function toggle(): void {
-            if (!settings.visible) {
-                // Open on the focused monitor.
-                const focused = Hyprland.focusedMonitor
-                const match = Quickshell.screens.find(s => focused && s.name === focused.name)
-                settings.screen = match ?? Quickshell.screens[0]
+            if (settings.visible) {
+                settings.leave(-1)
+                return
             }
-            settings.visible = !settings.visible
+
+            // Open on the focused monitor.
+            const focused = Hyprland.focusedMonitor
+            settings.screen = settings.screenNamed(focused?.name)
+            settings.visible = true
         }
 
         // For testing: qs ipc call settings set notifications.timeout 3000
@@ -71,15 +102,134 @@ PanelWindow {
 
     ConfigFile {
         id: configFile
+
+        onFailed: reason => settings.failed(reason)
+    }
+
+    // Apply reloads the shell, which rebuilds this window closed. These
+    // values reopen it in the new shell.
+    PersistentProperties {
+        id: persist
+
+        reloadableId: "settings"
+
+        property bool open: false
+        property bool applied: false
+        property int section: 0
+        property string screenName: ""
+
+        onReloaded: {
+            if (open) {
+                settings.current = section
+                settings.screen = settings.screenNamed(screenName)
+                settings.visible = true
+            }
+
+            if (applied)
+                settings.showStatus("✓ Applied", Config.colors.green)
+
+            open = false
+            applied = false
+        }
+    }
+
+    Timer {
+        id: statusTimer
+
+        interval: 2000
+        onTriggered: settings.status = ""
+    }
+
+    function screenNamed(name) {
+        return Quickshell.screens.find(s => s.name === name) ?? Quickshell.screens[0]
     }
 
     function step(delta) {
         const count = settings.sections.length
-        settings.current = (settings.current + delta + count) % count
+        settings.leave((settings.current + delta + count) % count)
     }
 
-    function close() {
-        settings.visible = false
+    // Go to a section, or close when index is -1. With unsaved changes,
+    // ask first; the choice then finishes this move.
+    function leave(index) {
+        if (index === settings.current)
+            return
+
+        if (settings.dirtyCount === 0) {
+            settings.go(index)
+            return
+        }
+
+        settings.target = index
+        settings.asking = true
+        keys.forceActiveFocus()
+    }
+
+    function go(index) {
+        settings.asking = false
+
+        if (index < 0) {
+            settings.pending = {}
+            settings.visible = false
+        } else {
+            settings.current = index
+        }
+    }
+
+    function discard() {
+        settings.pending = {}
+        settings.go(settings.target)
+    }
+
+    function original(key) {
+        return key.split(".").reduce((object, name) => object[name], Config)
+    }
+
+    function valueOf(key) {
+        return key in settings.pending ? settings.pending[key] : settings.original(key)
+    }
+
+    // Controls call this on every edit. A value equal to config.js is clean.
+    function change(key, value) {
+        const next = Object.assign({}, settings.pending)
+
+        if (value === settings.original(key))
+            delete next[key]
+        else
+            next[key] = value
+
+        settings.pending = next
+    }
+
+    // Writes config.js. On success the shell reloads, and persist reopens
+    // the modal on section target, or leaves it closed when target is -1.
+    function apply(target) {
+        if (settings.dirtyCount === 0)
+            return
+
+        settings.asking = false
+
+        persist.open = target >= 0
+        persist.applied = target >= 0
+        persist.section = target
+        persist.screenName = settings.screen.name
+
+        const reason = configFile.save(settings.pending)
+        if (reason)
+            settings.failed(reason)
+    }
+
+    function failed(reason) {
+        persist.open = false
+        persist.applied = false
+        settings.visible = true
+        settings.showStatus("Reload failed: " + reason, Config.colors.red)
+    }
+
+    function showStatus(text, color) {
+        settings.status = text
+        settings.statusColor = color
+        statusTimer.restart()
     }
 
     Rectangle {
@@ -88,7 +238,7 @@ PanelWindow {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: settings.close()
+            onClicked: settings.leave(-1)
         }
 
         Rectangle {
@@ -108,33 +258,48 @@ PanelWindow {
                 anchors.fill: parent
             }
 
-            Item {
+            // Holds focus while no control has it. Keys a control does not
+            // use bubble up to here.
+            RowLayout {
                 id: keys
 
                 anchors.fill: parent
-
-                Keys.onEscapePressed: settings.close()
-
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Backtab) {
-                        settings.step(-1)
-                        event.accepted = true
-                    } else if (event.modifiers & Qt.ControlModifier) {
-                        if (event.key === Qt.Key_J || event.key === Qt.Key_Tab) {
-                            settings.step(1)
-                            event.accepted = true
-                        } else if (event.key === Qt.Key_K) {
-                            settings.step(-1)
-                            event.accepted = true
-                        }
-                    }
-                }
-            }
-
-            RowLayout {
-                anchors.fill: parent
                 anchors.margins: 1
                 spacing: 0
+
+                Keys.onPressed: event => {
+                    const key = event.key
+                    const tab = key === Qt.Key_Tab || key === Qt.Key_Backtab
+
+                    if (settings.asking && !tab) {
+                        if (key === Qt.Key_D)
+                            settings.discard()
+                        else if (key === Qt.Key_S)
+                            settings.apply(settings.target)
+                        else if (key === Qt.Key_Escape)
+                            settings.asking = false
+                    } else if (key === Qt.Key_Escape) {
+                        settings.leave(-1)
+                    } else if (!(event.modifiers & Qt.ControlModifier)) {
+                        // Controls move focus on Tab themselves. Here focus is
+                        // on the modal, so Tab enters the pane.
+                        if (!tab)
+                            return
+                        keys.nextItemInFocusChain(key === Qt.Key_Tab).forceActiveFocus()
+                    } else if (key === Qt.Key_J || key === Qt.Key_Tab) {
+                        settings.step(1)
+                    } else if (key === Qt.Key_K || key === Qt.Key_Backtab) {
+                        settings.step(-1)
+                    } else if (key === Qt.Key_S) {
+                        settings.apply(settings.current)
+                    } else if (key === Qt.Key_Return || key === Qt.Key_Enter) {
+                        settings.apply(-1)
+                    } else {
+                        return
+                    }
+
+                    event.accepted = true
+                }
 
                 // Sidebar
                 Rectangle {
@@ -214,10 +379,25 @@ PanelWindow {
                                         }
                                     }
 
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.right: parent.right
+                                        anchors.rightMargin: 12
+
+                                        visible: entry.selected && settings.dirtyCount > 0
+                                        text: "●"
+                                        color: Config.colors.accent
+
+                                        font {
+                                            family: Config.bar.fontFamily
+                                            pixelSize: Config.bar.fontSize - 2
+                                        }
+                                    }
+
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: settings.current = entry.index
+                                        onClicked: settings.leave(entry.index)
                                     }
                                 }
                             }
@@ -275,6 +455,23 @@ PanelWindow {
                             }
                         }
 
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.right: parent.right
+                            anchors.rightMargin: 24
+
+                            visible: settings.dirtyCount > 0
+                            text: settings.dirtyCount + (settings.dirtyCount === 1
+                                ? " unsaved change"
+                                : " unsaved changes")
+                            color: Config.text.dim
+
+                            font {
+                                family: Config.bar.fontFamily
+                                pixelSize: Config.bar.fontSize - 2
+                            }
+                        }
+
                         Rectangle {
                             anchors.bottom: parent.bottom
                             width: parent.width
@@ -283,9 +480,101 @@ PanelWindow {
                         }
                     }
 
-                    Item {
+                    Loader {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
+                        Layout.topMargin: 4
+                        Layout.leftMargin: 24
+                        Layout.rightMargin: 32
+
+                        // Locked while the save/discard prompt is open.
+                        enabled: !settings.asking
+
+                        sourceComponent: settings.pages[settings.sections[settings.current]] ?? null
+                    }
+
+                    // Footer, persistent sections only. Live sections get
+                    // their own Close footer.
+                    Item {
+                        visible: settings.current >= settings.liveCount
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 52
+
+                        Rectangle {
+                            anchors.top: parent.top
+                            width: parent.width
+                            height: 1
+                            color: Config.colors.border
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 24
+                            anchors.rightMargin: 16
+                            spacing: 8
+
+                            Text {
+                                Layout.fillWidth: true
+
+                                text: settings.asking ? "Unsaved changes" : settings.status
+                                color: settings.asking ? Config.colors.yellow : settings.statusColor
+                                elide: Text.ElideRight
+
+                                font {
+                                    family: Config.bar.fontFamily
+                                    pixelSize: Config.bar.fontSize - 2
+                                }
+                            }
+
+                            FooterButton {
+                                visible: !settings.asking
+                                label: "Cancel"
+                                hint: "Esc"
+                                onClicked: settings.leave(-1)
+                            }
+
+                            FooterButton {
+                                visible: !settings.asking
+                                label: "Apply"
+                                hint: "^S"
+                                enabled: settings.dirtyCount > 0
+                                onClicked: settings.apply(settings.current)
+                            }
+
+                            FooterButton {
+                                visible: !settings.asking
+                                label: "Save & Close"
+                                hint: "^↵"
+                                primary: true
+                                enabled: settings.dirtyCount > 0
+                                onClicked: settings.apply(-1)
+                            }
+
+                            // Save/discard prompt. The choice then finishes
+                            // the move the user started (switch or close).
+                            FooterButton {
+                                visible: settings.asking
+                                label: "Back"
+                                hint: "Esc"
+                                onClicked: settings.asking = false
+                            }
+
+                            FooterButton {
+                                visible: settings.asking
+                                label: "Discard"
+                                hint: "D"
+                                onClicked: settings.discard()
+                            }
+
+                            FooterButton {
+                                visible: settings.asking
+                                label: "Save"
+                                hint: "S"
+                                primary: true
+                                onClicked: settings.apply(settings.target)
+                            }
+                        }
                     }
                 }
             }
