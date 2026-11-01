@@ -70,6 +70,7 @@ PanelWindow {
     // Pane content per section. Sections without a page show an empty pane.
     readonly property var pages: ({
         Network: networkPage,
+        Bluetooth: bluetoothPage,
         Appearance: appearancePage,
         Bar: barPage,
         Notifications: notificationsPage,
@@ -80,6 +81,14 @@ PanelWindow {
         id: networkPage
 
         NetworkSection {
+            form: settings
+        }
+    }
+
+    Component {
+        id: bluetoothPage
+
+        BluetoothSection {
             form: settings
         }
     }
