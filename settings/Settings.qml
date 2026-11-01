@@ -27,6 +27,7 @@ PanelWindow {
     readonly property int liveCount: 4
 
     property int current: 0
+    readonly property bool live: current < liveCount
 
     // Gap between a row divider and the control above or below it.
     readonly property int rowPadding: 12
@@ -68,11 +69,20 @@ PanelWindow {
 
     // Pane content per section. Sections without a page show an empty pane.
     readonly property var pages: ({
+        Network: networkPage,
         Appearance: appearancePage,
         Bar: barPage,
         Notifications: notificationsPage,
         Screensaver: screensaverPage
     })
+
+    Component {
+        id: networkPage
+
+        NetworkSection {
+            form: settings
+        }
+    }
 
     Component {
         id: appearancePage
@@ -405,6 +415,8 @@ PanelWindow {
                         settings.step(1)
                     } else if (key === Qt.Key_K || key === Qt.Key_Backtab) {
                         settings.step(-1)
+                    } else if (key === Qt.Key_R && page.item?.rescan) {
+                        page.item.rescan()
                     } else if (key === Qt.Key_S) {
                         settings.apply(settings.current)
                     } else if (key === Qt.Key_Return || key === Qt.Key_Enter) {
@@ -591,6 +603,16 @@ PanelWindow {
                             }
                         }
 
+                        // A live section's own control, such as the Wi-Fi
+                        // radio switch.
+                        Loader {
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.right: parent.right
+                            anchors.rightMargin: 24
+
+                            sourceComponent: page.item?.header ?? null
+                        }
+
                         Rectangle {
                             anchors.bottom: parent.bottom
                             width: parent.width
@@ -675,11 +697,9 @@ PanelWindow {
                         }
                     }
 
-                    // Footer, persistent sections only. Live sections get
-                    // their own Close footer.
+                    // Footer. Live sections act at once, so they show only
+                    // Close and their key hint.
                     Item {
-                        visible: settings.current >= settings.liveCount
-
                         Layout.fillWidth: true
                         Layout.preferredHeight: 52
 
@@ -699,8 +719,11 @@ PanelWindow {
                             Text {
                                 Layout.fillWidth: true
 
-                                text: settings.asking ? "Unsaved changes" : settings.status
-                                color: settings.asking ? settings.colors.yellow : settings.statusColor
+                                text: settings.asking ? "Unsaved changes"
+                                    : settings.status || (page.item?.hint ?? "")
+                                color: settings.asking ? settings.colors.yellow
+                                    : settings.status ? settings.statusColor
+                                    : settings.text.dim
                                 elide: Text.ElideRight
 
                                 font {
@@ -711,7 +734,15 @@ PanelWindow {
 
                             FooterButton {
                                 form: settings
-                                visible: !settings.asking
+                                visible: settings.live
+                                label: "Close"
+                                hint: "Esc"
+                                onClicked: settings.leave(-1)
+                            }
+
+                            FooterButton {
+                                form: settings
+                                visible: !settings.asking && !settings.live
                                 label: "Cancel"
                                 hint: "Esc"
                                 onClicked: settings.leave(-1)
@@ -719,7 +750,7 @@ PanelWindow {
 
                             FooterButton {
                                 form: settings
-                                visible: !settings.asking
+                                visible: !settings.asking && !settings.live
                                 label: "Apply"
                                 hint: "^S"
                                 enabled: settings.canApply
@@ -728,7 +759,7 @@ PanelWindow {
 
                             FooterButton {
                                 form: settings
-                                visible: !settings.asking
+                                visible: !settings.asking && !settings.live
                                 label: "Save & Close"
                                 hint: "^↵"
                                 primary: true
