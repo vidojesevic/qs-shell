@@ -20,7 +20,7 @@ ColumnLayout {
     }
 
     Text {
-        Layout.topMargin: 12
+        Layout.topMargin: section.form.rowPadding
 
         text: "1000 – 30000 ms"
         color: Config.text.dim

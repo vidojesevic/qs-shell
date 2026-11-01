@@ -23,10 +23,18 @@ PanelWindow {
 
     property int current: 0
 
+    // Gap between a row divider and the control above or below it.
+    readonly property int rowPadding: 12
+
     // Unsaved changes in the current section: { key path: value }. Leaving
     // the section asks to save or discard them first.
     property var pending: ({})
     readonly property int dirtyCount: Object.keys(pending).length
+
+    // Keys whose pending value is not allowed (empty required text). Apply
+    // stays off while any is set.
+    property var invalid: ({})
+    readonly property bool canApply: dirtyCount > 0 && Object.keys(invalid).length === 0
 
     // The save/discard prompt is open. target is where to go after it: a
     // section index, or -1 to close.
@@ -35,13 +43,22 @@ PanelWindow {
 
     // Pane content per section. Sections without a page show an empty pane.
     readonly property var pages: ({
-        Notifications: notificationsPage
+        Notifications: notificationsPage,
+        Screensaver: screensaverPage
     })
 
     Component {
         id: notificationsPage
 
         NotificationsSection {
+            form: settings
+        }
+    }
+
+    Component {
+        id: screensaverPage
+
+        ScreensaverSection {
             form: settings
         }
     }
@@ -170,6 +187,7 @@ PanelWindow {
 
         if (index < 0) {
             settings.pending = {}
+            settings.invalid = {}
             settings.visible = false
         } else {
             settings.current = index
@@ -178,6 +196,7 @@ PanelWindow {
 
     function discard() {
         settings.pending = {}
+        settings.invalid = {}
         settings.go(settings.target)
     }
 
@@ -201,10 +220,21 @@ PanelWindow {
         settings.pending = next
     }
 
+    function validate(key, ok) {
+        const next = Object.assign({}, settings.invalid)
+
+        if (ok)
+            delete next[key]
+        else
+            next[key] = true
+
+        settings.invalid = next
+    }
+
     // Writes config.js. On success the shell reloads, and persist reopens
     // the modal on section target, or leaves it closed when target is -1.
     function apply(target) {
-        if (settings.dirtyCount === 0)
+        if (!settings.canApply)
             return
 
         settings.asking = false
@@ -306,6 +336,10 @@ PanelWindow {
                     Layout.preferredWidth: 200
                     Layout.fillHeight: true
 
+                    // Modal radius minus its border, so the corners do not
+                    // paint over the rounded border (clip is square).
+                    topLeftRadius: 7
+                    bottomLeftRadius: 7
                     color: Config.colors.backgroundAlt
 
                     ColumnLayout {
@@ -480,17 +514,23 @@ PanelWindow {
                         }
                     }
 
-                    Loader {
+                    Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.topMargin: 4
                         Layout.leftMargin: 24
                         Layout.rightMargin: 32
 
-                        // Locked while the save/discard prompt is open.
-                        enabled: !settings.asking
+                        // Width only, so the page keeps its own height and
+                        // rows stay at the top.
+                        Loader {
+                            width: parent.width
 
-                        sourceComponent: settings.pages[settings.sections[settings.current]] ?? null
+                            // Locked while the save/discard prompt is open.
+                            enabled: !settings.asking
+
+                            sourceComponent: settings.pages[settings.sections[settings.current]] ?? null
+                        }
                     }
 
                     // Footer, persistent sections only. Live sections get
@@ -538,7 +578,7 @@ PanelWindow {
                                 visible: !settings.asking
                                 label: "Apply"
                                 hint: "^S"
-                                enabled: settings.dirtyCount > 0
+                                enabled: settings.canApply
                                 onClicked: settings.apply(settings.current)
                             }
 
@@ -547,7 +587,7 @@ PanelWindow {
                                 label: "Save & Close"
                                 hint: "^↵"
                                 primary: true
-                                enabled: settings.dirtyCount > 0
+                                enabled: settings.canApply
                                 onClicked: settings.apply(-1)
                             }
 
@@ -572,6 +612,7 @@ PanelWindow {
                                 label: "Save"
                                 hint: "S"
                                 primary: true
+                                enabled: settings.canApply
                                 onClicked: settings.apply(settings.target)
                             }
                         }

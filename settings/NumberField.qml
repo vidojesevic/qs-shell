@@ -19,7 +19,7 @@ Item {
     readonly property bool dirty: key in form.pending
 
     Layout.fillWidth: true
-    implicitHeight: 36
+    implicitHeight: 28 + 2 * form.rowPadding
 
     function clamp(n) {
         return Math.min(row.to, Math.max(row.from, n))
