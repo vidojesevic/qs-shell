@@ -7,6 +7,7 @@ import "perun-launcher"
 import "qsbar"
 import "recording"
 import "screensaver"
+import "settings"
 import "theme"
 
 ShellRoot {
@@ -81,4 +82,6 @@ ShellRoot {
     RecordingHud {}
 
     Screensaver {}
+
+    Settings {}
 }
