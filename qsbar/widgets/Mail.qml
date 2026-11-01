@@ -9,9 +9,9 @@ Text {
     id: mailRoot
 
     // Thunderbird writes per-folder counts to folderCache.json in its
-    // profile. Only inbox-flagged folders are counted; set this false to
-    // count every folder instead.
-    property bool inboxOnly: true
+    // profile. Only inbox-flagged folders are counted; set inboxOnly false in
+    // config.js to count every folder instead.
+    property bool inboxOnly: Config.widgets.mail.inboxOnly
 
     // nsMsgFolderFlags::Inbox
     readonly property int inboxFlag: 0x1000
@@ -128,7 +128,7 @@ Text {
     }
 
     Timer {
-        interval: 60000
+        interval: Config.widgets.mail.refresh * 1000
         running: true
         repeat: true
 
