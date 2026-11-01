@@ -43,9 +43,18 @@ PanelWindow {
 
     // Pane content per section. Sections without a page show an empty pane.
     readonly property var pages: ({
+        Bar: barPage,
         Notifications: notificationsPage,
         Screensaver: screensaverPage
     })
+
+    Component {
+        id: barPage
+
+        BarSection {
+            form: settings
+        }
+    }
 
     Component {
         id: notificationsPage
@@ -88,7 +97,10 @@ PanelWindow {
     }
 
     // The old section's controls are gone; take focus back from them.
-    onCurrentChanged: keys.forceActiveFocus()
+    onCurrentChanged: {
+        keys.forceActiveFocus()
+        body.contentY = 0
+    }
 
     IpcHandler {
         target: "settings"
@@ -518,18 +530,75 @@ PanelWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.topMargin: 4
-                        Layout.leftMargin: 24
-                        Layout.rightMargin: 32
 
-                        // Width only, so the page keeps its own height and
-                        // rows stay at the top.
-                        Loader {
-                            width: parent.width
+                        // Scrolls when the page is taller than the pane. The
+                        // page margins sit inside it, so focus rings at the
+                        // page edge are not clipped.
+                        Flickable {
+                            id: body
 
-                            // Locked while the save/discard prompt is open.
-                            enabled: !settings.asking
+                            anchors.fill: parent
+                            contentHeight: page.height
+                            boundsBehavior: Flickable.StopAtBounds
+                            clip: true
 
-                            sourceComponent: settings.pages[settings.sections[settings.current]] ?? null
+                            // Keep the focused control in view while Tab
+                            // moves through the page.
+                            readonly property Item focused: Window.activeFocusItem
+                            onFocusedChanged: body.reveal(body.focused)
+
+                            function reveal(item) {
+                                let parent = item
+                                while (parent && parent !== body.contentItem)
+                                    parent = parent.parent
+                                if (!parent)
+                                    return
+
+                                const margin = settings.rowPadding
+                                const top = item.mapToItem(body.contentItem, 0, 0).y - margin
+                                const bottom = top + item.height + 2 * margin
+
+                                if (top < body.contentY)
+                                    body.contentY = Math.max(0, top)
+                                else if (bottom > body.contentY + body.height)
+                                    body.contentY = Math.min(body.contentHeight - body.height, bottom - body.height)
+                            }
+
+                            // Width only, so the page keeps its own height
+                            // and rows stay at the top.
+                            Loader {
+                                id: page
+
+                                x: 24
+                                width: body.width - 24 - 32
+
+                                // Locked while the save/discard prompt is open.
+                                enabled: !settings.asking
+
+                                sourceComponent: settings.pages[settings.sections[settings.current]] ?? null
+                            }
+                        }
+
+                        // Scrollbar, in the right page margin.
+                        Rectangle {
+                            visible: body.contentHeight > body.height
+
+                            x: parent.width - 16
+                            y: 8
+                            width: 4
+                            height: parent.height - 16
+
+                            radius: 2
+                            color: Config.colors.border
+
+                            Rectangle {
+                                y: body.visibleArea.yPosition * parent.height
+                                width: 4
+                                height: body.visibleArea.heightRatio * parent.height
+
+                                radius: 2
+                                color: Config.colors.muted
+                            }
                         }
                     }
 
