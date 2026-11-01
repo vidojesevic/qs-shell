@@ -41,7 +41,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
 
         text: row.label
-        color: Config.text.normal
+        color: row.form.text.normal
 
         font {
             family: Config.bar.fontFamily
@@ -55,7 +55,7 @@ Item {
 
             visible: row.dirty
             text: "●"
-            color: Config.colors.accent
+            color: row.form.colors.accent
             font: parent.font
         }
     }
@@ -70,9 +70,9 @@ Item {
             height: 28
 
             radius: 6
-            color: Config.colors.backgroundAlt
+            color: row.form.colors.backgroundAlt
             border.width: 1
-            border.color: Config.colors.border
+            border.color: row.form.colors.border
 
             TextInput {
                 id: input
@@ -88,9 +88,9 @@ Item {
                 selectByMouse: true
                 validator: RegularExpressionValidator { regularExpression: /[0-9]{0,6}/ }
 
-                color: Config.colors.foreground
-                selectionColor: Config.colors.accent
-                selectedTextColor: Config.colors.background
+                color: row.form.colors.foreground
+                selectionColor: row.form.colors.accent
+                selectedTextColor: row.form.colors.background
 
                 font {
                     family: Config.bar.fontFamily
@@ -116,6 +116,7 @@ Item {
             }
 
             FocusRing {
+                form: row.form
                 visible: input.activeFocus
             }
         }
@@ -125,7 +126,7 @@ Item {
 
             visible: row.unit !== ""
             text: row.unit
-            color: Config.text.dim
+            color: row.form.text.dim
 
             font {
                 family: Config.bar.fontFamily
@@ -138,6 +139,6 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 1
-        color: Config.colors.border
+        color: row.form.colors.border
     }
 }

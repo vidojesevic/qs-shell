@@ -75,7 +75,9 @@ ShellRoot {
 
     Notifications {}
 
-    ThemeSwitcher {}
+    ThemeSwitcher {
+        id: themeSwitcher
+    }
 
     Launcher {}
 
@@ -83,5 +85,7 @@ ShellRoot {
 
     Screensaver {}
 
-    Settings {}
+    Settings {
+        onThemeRequested: name => themeSwitcher.apply(name)
+    }
 }

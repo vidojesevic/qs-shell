@@ -35,7 +35,7 @@ ColumnLayout {
             anchors.verticalCenter: parent.verticalCenter
 
             text: row.label
-            color: Config.text.normal
+            color: row.form.text.normal
 
             font {
                 family: Config.bar.fontFamily
@@ -49,7 +49,7 @@ ColumnLayout {
 
                 visible: row.dirty
                 text: "●"
-                color: Config.colors.accent
+                color: row.form.colors.accent
                 font: parent.font
             }
         }
@@ -62,9 +62,9 @@ ColumnLayout {
             height: 28
 
             radius: 6
-            color: Config.colors.backgroundAlt
+            color: row.form.colors.backgroundAlt
             border.width: 1
-            border.color: row.empty ? Config.colors.yellow : Config.colors.border
+            border.color: row.empty ? row.form.colors.yellow : row.form.colors.border
 
             TextInput {
                 id: input
@@ -80,9 +80,9 @@ ColumnLayout {
                 selectByMouse: true
                 clip: true
 
-                color: Config.colors.foreground
-                selectionColor: Config.colors.accent
-                selectedTextColor: Config.colors.background
+                color: row.form.colors.foreground
+                selectionColor: row.form.colors.accent
+                selectedTextColor: row.form.colors.background
 
                 font {
                     family: Config.bar.fontFamily
@@ -96,6 +96,7 @@ ColumnLayout {
             }
 
             FocusRing {
+                form: row.form
                 visible: input.activeFocus
             }
         }
@@ -104,7 +105,7 @@ ColumnLayout {
             anchors.bottom: parent.bottom
             width: parent.width
             height: 1
-            color: Config.colors.border
+            color: row.form.colors.border
             visible: !row.empty
         }
     }
@@ -120,7 +121,7 @@ ColumnLayout {
             anchors.verticalCenter: parent.verticalCenter
 
             text: row.hint
-            color: Config.colors.yellow
+            color: row.form.colors.yellow
 
             font {
                 family: Config.bar.fontFamily
@@ -132,7 +133,7 @@ ColumnLayout {
             anchors.bottom: parent.bottom
             width: parent.width
             height: 1
-            color: Config.colors.border
+            color: row.form.colors.border
         }
     }
 }

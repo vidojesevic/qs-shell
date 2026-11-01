@@ -6,6 +6,7 @@ import "../config.js" as Config
 Rectangle {
     id: button
 
+    required property var form
     required property string label
     required property string hint
     property bool primary: false
@@ -18,9 +19,9 @@ Rectangle {
     implicitHeight: 32
 
     radius: 6
-    color: button.filled ? Config.colors.accent : "transparent"
+    color: button.filled ? button.form.colors.accent : "transparent"
     border.width: 1
-    border.color: button.filled ? Config.colors.accent : Config.colors.border
+    border.color: button.filled ? button.form.colors.accent : button.form.colors.border
 
     activeFocusOnTab: true
 
@@ -41,9 +42,9 @@ Rectangle {
 
         Text {
             text: button.label
-            color: !button.enabled ? Config.colors.muted
-                : button.filled ? Config.colors.background
-                : Config.colors.foreground
+            color: !button.enabled ? button.form.colors.muted
+                : button.filled ? button.form.colors.background
+                : button.form.colors.foreground
 
             font {
                 family: Config.bar.fontFamily
@@ -53,7 +54,7 @@ Rectangle {
 
         Text {
             text: button.hint
-            color: button.filled ? Config.colors.background : Config.colors.muted
+            color: button.filled ? button.form.colors.background : button.form.colors.muted
             opacity: button.filled ? 0.65 : 1
 
             font {
@@ -70,6 +71,7 @@ Rectangle {
     }
 
     FocusRing {
+        form: button.form
         visible: button.activeFocus
     }
 }
