@@ -32,7 +32,7 @@ Item {
 
         Text {
             text: choice.label
-            color: Config.text.normal
+            color: choice.form.text.normal
 
             font {
                 family: Config.bar.fontFamily
@@ -46,7 +46,7 @@ Item {
 
                 visible: choice.dirty
                 text: "●"
-                color: Config.colors.accent
+                color: choice.form.colors.accent
                 font: parent.font
             }
         }
@@ -74,9 +74,9 @@ Item {
                     height: 28
 
                     radius: 6
-                    color: pill.selected ? Config.colors.accent : "transparent"
+                    color: pill.selected ? choice.form.colors.accent : "transparent"
                     border.width: 1
-                    border.color: pill.selected ? Config.colors.accent : Config.colors.border
+                    border.color: pill.selected ? choice.form.colors.accent : choice.form.colors.border
 
                     Text {
                         id: name
@@ -84,7 +84,7 @@ Item {
                         anchors.centerIn: parent
 
                         text: pill.modelData
-                        color: pill.selected ? Config.colors.background : Config.colors.foregroundAlt
+                        color: pill.selected ? choice.form.colors.background : choice.form.colors.foregroundAlt
 
                         font {
                             family: Config.bar.fontFamily
@@ -102,6 +102,7 @@ Item {
                     }
 
                     FocusRing {
+                        form: choice.form
                         visible: pills.activeFocus && pill.selected
                     }
                 }
@@ -113,6 +114,6 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 1
-        color: Config.colors.border
+        color: choice.form.colors.border
     }
 }

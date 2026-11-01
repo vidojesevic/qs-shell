@@ -23,7 +23,7 @@ ColumnLayout {
         Layout.topMargin: section.form.rowPadding
 
         text: "1000 – 30000 ms"
-        color: Config.text.dim
+        color: section.form.text.dim
 
         font {
             family: Config.bar.fontFamily

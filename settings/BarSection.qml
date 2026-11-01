@@ -60,7 +60,7 @@ ColumnLayout {
         Layout.topMargin: 2 * section.form.rowPadding
 
         text: "Widgets · left → right"
-        color: Config.text.dim
+        color: section.form.text.dim
 
         font {
             family: Config.bar.fontFamily

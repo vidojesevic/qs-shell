@@ -6,6 +6,11 @@ import QtQuick
 import QtQuick.Layouts
 
 import "../config.js" as Config
+import "../theme/catppuccin.js" as Catppuccin
+import "../theme/dracula.js" as Dracula
+import "../theme/onedark.js" as Onedark
+import "../theme/tokyonight.js" as Tokyonight
+import "../theme/ember.js" as Ember
 
 // Settings modal. Toggle with: qs ipc call settings toggle
 // Keys: Ctrl+J / Ctrl+K (or Ctrl+Tab / Ctrl+Shift+Tab) change section,
@@ -41,12 +46,41 @@ PanelWindow {
     property bool asking: false
     property int target: -1
 
+    // Asks the theme switcher for a theme. Connected in shell.qml.
+    signal themeRequested(string name)
+
+    // Theme is not in config.js. Its original value is the name that
+    // theme/current.js links to.
+    property string currentTheme: ""
+
+    readonly property var themes: ({
+        catppuccin: Catppuccin,
+        dracula: Dracula,
+        onedark: Onedark,
+        tokyonight: Tokyonight,
+        ember: Ember
+    })
+
+    // Modal colors. A pending theme shows here before Apply.
+    readonly property var look: settings.themes[settings.pending.theme] ?? Config
+    readonly property var colors: settings.look.colors
+    readonly property var text: settings.look.text
+
     // Pane content per section. Sections without a page show an empty pane.
     readonly property var pages: ({
+        Appearance: appearancePage,
         Bar: barPage,
         Notifications: notificationsPage,
         Screensaver: screensaverPage
     })
+
+    Component {
+        id: appearancePage
+
+        AppearanceSection {
+            form: settings
+        }
+    }
 
     Component {
         id: barPage
@@ -73,7 +107,7 @@ PanelWindow {
     }
 
     property string status: ""
-    property color statusColor: Config.colors.green
+    property color statusColor: settings.colors.green
 
     anchors {
         top: true
@@ -146,19 +180,42 @@ PanelWindow {
         property bool applied: false
         property int section: 0
         property string screenName: ""
+        property string theme: ""
 
-        onReloaded: {
+        // Wait until the reload is done. A window made visible during the
+        // reload crashes Quickshell (null window in connectWindow).
+        onReloaded: Qt.callLater(persist.restore)
+
+        function restore() {
             if (open) {
                 settings.current = section
                 settings.screen = settings.screenNamed(screenName)
                 settings.visible = true
             }
 
+            // config.js was saved; the theme switch goes next. It reloads
+            // again, and the values kept here reopen the modal after it.
+            if (theme !== "") {
+                const name = theme
+                theme = ""
+                settings.themeRequested(name)
+                return
+            }
+
             if (applied)
-                settings.showStatus("✓ Applied", Config.colors.green)
+                settings.showStatus("✓ Applied", settings.colors.green)
 
             open = false
             applied = false
+        }
+    }
+
+    Process {
+        running: true
+        command: ["readlink", Quickshell.shellDir + "/theme/current.js"]
+
+        stdout: StdioCollector {
+            onStreamFinished: settings.currentTheme = text.trim().replace(/\.js$/, "")
         }
     }
 
@@ -213,6 +270,9 @@ PanelWindow {
     }
 
     function original(key) {
+        if (key === "theme")
+            return settings.currentTheme
+
         return key.split(".").reduce((object, name) => object[name], Config)
     }
 
@@ -256,7 +316,19 @@ PanelWindow {
         persist.section = target
         persist.screenName = settings.screen.name
 
-        const reason = configFile.save(settings.pending)
+        // The theme goes to the theme switcher, the rest to config.js.
+        const changes = Object.assign({}, settings.pending)
+        const theme = changes.theme ?? ""
+        delete changes.theme
+
+        if (Object.keys(changes).length === 0) {
+            settings.themeRequested(theme)
+            return
+        }
+
+        persist.theme = theme
+
+        const reason = configFile.save(changes)
         if (reason)
             settings.failed(reason)
     }
@@ -264,8 +336,9 @@ PanelWindow {
     function failed(reason) {
         persist.open = false
         persist.applied = false
+        persist.theme = ""
         settings.visible = true
-        settings.showStatus("Reload failed: " + reason, Config.colors.red)
+        settings.showStatus("Reload failed: " + reason, settings.colors.red)
     }
 
     function showStatus(text, color) {
@@ -276,7 +349,7 @@ PanelWindow {
 
     Rectangle {
         anchors.fill: parent
-        color: Qt.alpha(Config.colors.background, 0.7)
+        color: Qt.alpha(settings.colors.background, 0.7)
 
         MouseArea {
             anchors.fill: parent
@@ -290,8 +363,8 @@ PanelWindow {
             implicitHeight: 560
 
             radius: 8
-            color: Config.colors.background
-            border.color: Config.colors.border
+            color: settings.colors.background
+            border.color: settings.colors.border
             border.width: 1
             clip: true
 
@@ -352,7 +425,7 @@ PanelWindow {
                     // paint over the rounded border (clip is square).
                     topLeftRadius: 7
                     bottomLeftRadius: 7
-                    color: Config.colors.backgroundAlt
+                    color: settings.colors.backgroundAlt
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -367,7 +440,7 @@ PanelWindow {
                             Layout.bottomMargin: 12
 
                             text: "Settings"
-                            color: Config.text.normal
+                            color: settings.text.normal
 
                             font {
                                 family: Config.bar.fontFamily
@@ -401,7 +474,7 @@ PanelWindow {
                                     Layout.leftMargin: 12
                                     Layout.rightMargin: 12
 
-                                    color: Config.colors.border
+                                    color: settings.colors.border
                                 }
 
                                 Rectangle {
@@ -409,7 +482,7 @@ PanelWindow {
                                     Layout.preferredHeight: 32
 
                                     radius: 6
-                                    color: entry.selected ? Config.colors.background : "transparent"
+                                    color: entry.selected ? settings.colors.background : "transparent"
 
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
@@ -417,7 +490,7 @@ PanelWindow {
                                         anchors.leftMargin: 12
 
                                         text: entry.modelData
-                                        color: entry.selected ? Config.text.active : Config.colors.foregroundAlt
+                                        color: entry.selected ? settings.text.active : settings.colors.foregroundAlt
 
                                         font {
                                             family: Config.bar.fontFamily
@@ -432,7 +505,7 @@ PanelWindow {
 
                                         visible: entry.selected && settings.dirtyCount > 0
                                         text: "●"
-                                        color: Config.colors.accent
+                                        color: settings.colors.accent
 
                                         font {
                                             family: Config.bar.fontFamily
@@ -457,7 +530,7 @@ PanelWindow {
                             Layout.leftMargin: 12
 
                             text: "^J ^K sections"
-                            color: Config.text.dim
+                            color: settings.text.dim
 
                             font {
                                 family: Config.bar.fontFamily
@@ -472,7 +545,7 @@ PanelWindow {
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
                         width: 1
-                        color: Config.colors.border
+                        color: settings.colors.border
                     }
                 }
 
@@ -492,7 +565,7 @@ PanelWindow {
                             anchors.leftMargin: 24
 
                             text: settings.sections[settings.current]
-                            color: Config.text.normal
+                            color: settings.text.normal
 
                             font {
                                 family: Config.bar.fontFamily
@@ -510,7 +583,7 @@ PanelWindow {
                             text: settings.dirtyCount + (settings.dirtyCount === 1
                                 ? " unsaved change"
                                 : " unsaved changes")
-                            color: Config.text.dim
+                            color: settings.text.dim
 
                             font {
                                 family: Config.bar.fontFamily
@@ -522,7 +595,7 @@ PanelWindow {
                             anchors.bottom: parent.bottom
                             width: parent.width
                             height: 1
-                            color: Config.colors.border
+                            color: settings.colors.border
                         }
                     }
 
@@ -589,7 +662,7 @@ PanelWindow {
                             height: parent.height - 16
 
                             radius: 2
-                            color: Config.colors.border
+                            color: settings.colors.border
 
                             Rectangle {
                                 y: body.visibleArea.yPosition * parent.height
@@ -597,7 +670,7 @@ PanelWindow {
                                 height: body.visibleArea.heightRatio * parent.height
 
                                 radius: 2
-                                color: Config.colors.muted
+                                color: settings.colors.muted
                             }
                         }
                     }
@@ -614,7 +687,7 @@ PanelWindow {
                             anchors.top: parent.top
                             width: parent.width
                             height: 1
-                            color: Config.colors.border
+                            color: settings.colors.border
                         }
 
                         RowLayout {
@@ -627,7 +700,7 @@ PanelWindow {
                                 Layout.fillWidth: true
 
                                 text: settings.asking ? "Unsaved changes" : settings.status
-                                color: settings.asking ? Config.colors.yellow : settings.statusColor
+                                color: settings.asking ? settings.colors.yellow : settings.statusColor
                                 elide: Text.ElideRight
 
                                 font {
@@ -637,6 +710,7 @@ PanelWindow {
                             }
 
                             FooterButton {
+                                form: settings
                                 visible: !settings.asking
                                 label: "Cancel"
                                 hint: "Esc"
@@ -644,6 +718,7 @@ PanelWindow {
                             }
 
                             FooterButton {
+                                form: settings
                                 visible: !settings.asking
                                 label: "Apply"
                                 hint: "^S"
@@ -652,6 +727,7 @@ PanelWindow {
                             }
 
                             FooterButton {
+                                form: settings
                                 visible: !settings.asking
                                 label: "Save & Close"
                                 hint: "^↵"
@@ -663,6 +739,7 @@ PanelWindow {
                             // Save/discard prompt. The choice then finishes
                             // the move the user started (switch or close).
                             FooterButton {
+                                form: settings
                                 visible: settings.asking
                                 label: "Back"
                                 hint: "Esc"
@@ -670,6 +747,7 @@ PanelWindow {
                             }
 
                             FooterButton {
+                                form: settings
                                 visible: settings.asking
                                 label: "Discard"
                                 hint: "D"
@@ -677,6 +755,7 @@ PanelWindow {
                             }
 
                             FooterButton {
+                                form: settings
                                 visible: settings.asking
                                 label: "Save"
                                 hint: "S"

@@ -28,7 +28,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
 
         text: row.label
-        color: row.value ? Config.text.normal : Config.text.dim
+        color: row.value ? row.form.text.normal : row.form.text.dim
 
         font {
             family: Config.bar.fontFamily
@@ -42,7 +42,7 @@ Item {
 
             visible: row.dirty
             text: "●"
-            color: Config.colors.accent
+            color: row.form.colors.accent
             font: parent.font
         }
     }
@@ -57,7 +57,7 @@ Item {
 
             visible: row.locked
             text: "always on"
-            color: Config.text.dim
+            color: row.form.text.dim
 
             font {
                 family: Config.bar.fontFamily
@@ -73,9 +73,9 @@ Item {
             height: 18
 
             radius: 9
-            color: row.value ? Config.colors.accent : "transparent"
+            color: row.value ? row.form.colors.accent : "transparent"
             border.width: 1
-            border.color: row.value ? Config.colors.accent : Config.colors.border
+            border.color: row.value ? row.form.colors.accent : row.form.colors.border
             opacity: row.locked ? 0.55 : 1
 
             activeFocusOnTab: !row.locked
@@ -88,7 +88,7 @@ Item {
                 height: 12
 
                 radius: 6
-                color: row.value ? Config.colors.background : Config.colors.muted
+                color: row.value ? row.form.colors.background : row.form.colors.muted
 
                 Behavior on x {
                     NumberAnimation { duration: 100 }
@@ -106,6 +106,7 @@ Item {
             }
 
             FocusRing {
+                form: row.form
                 visible: track.activeFocus
             }
         }
@@ -115,6 +116,6 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 1
-        color: Config.colors.border
+        color: row.form.colors.border
     }
 }

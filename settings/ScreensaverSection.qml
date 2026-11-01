@@ -38,7 +38,7 @@ ColumnLayout {
         Layout.topMargin: section.form.rowPadding
 
         text: "← → changes choice"
-        color: Config.text.dim
+        color: section.form.text.dim
 
         font {
             family: Config.bar.fontFamily
