@@ -56,6 +56,21 @@ PanelWindow {
             }
             settings.visible = !settings.visible
         }
+
+        // For testing: qs ipc call settings set notifications.timeout 3000
+        // The value is read as JSON (3000, true, "x"); anything else is a string.
+        function set(key: string, value: string): string {
+            let parsed = value
+            try {
+                parsed = JSON.parse(value)
+            } catch (e) {}
+
+            return configFile.save({ [key]: parsed }) || "ok"
+        }
+    }
+
+    ConfigFile {
+        id: configFile
     }
 
     function step(delta) {
