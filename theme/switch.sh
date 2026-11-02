@@ -15,6 +15,10 @@ ghostty="$(sed -n 's/^var ghostty = "\(.*\)"/\1/p' "$dir/$name.js")"
 helium="$(sed -n 's/^var helium = "\(.*\)"/\1/p' "$dir/$name.js")"
 nvim="$(sed -n 's/^var nvim = "\(.*\)"/\1/p' "$dir/$name.js")"
 gtk_accent="$(sed -n 's/^var gtkAccent = "\(.*\)"/\1/p' "$dir/$name.js")"
+herdr="$(sed -n 's/^var herdr = "\(.*\)"/\1/p' "$dir/$name.js")"
+
+# One palette color from the theme file, e.g. color backgroundAlt.
+color() { sed -n "s/^ *$1: \"\(#[0-9a-fA-F]*\)\".*/\1/p" "$dir/$name.js"; }
 
 ln -sfn "$name.js" "$dir/current.js"
 ln -sfn "$HOME/.config/walls/$wall" "$dir/wallpaper"
@@ -50,6 +54,21 @@ done
 "$dir/gtk.py" "$dir/$name.js"
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface accent-color "$gtk_accent"
+
+# Herdr: built-in theme name, and the [theme.custom] surfaces that already
+# exist in config.toml, from the palette. Every running session reloads it.
+herdr_config="$HOME/.config/herdr/config.toml"
+if command -v herdr >/dev/null && [ -f "$herdr_config" ]; then
+    sed -i \
+        -e "/^\[theme\]/,/^\[/ s|^name = .*|name = \"$herdr\"|" \
+        -e "/^\[theme\.custom\]/,/^\[/ s|^sidebar_bg = .*|sidebar_bg = \"$(color backgroundAlt)\"|" \
+        -e "/^\[theme\.custom\]/,/^\[/ s|^panel_bg = .*|panel_bg = \"$(color background)\"|" \
+        -e "/^\[theme\.custom\]/,/^\[/ s|^active_row_bg = .*|active_row_bg = \"$(color border)\"|" \
+        "$herdr_config"
+    for session in $(herdr session list | awk 'NR > 1 && $2 == "running" { print $1 }'); do
+        herdr --session "$session" server reload-config >/dev/null 2>&1 || true
+    done
+fi
 
 # Manual use: reload running quickshell too.
 [ -n "$QS_RELOAD_SELF" ] || qs ipc call theme reload >/dev/null 2>&1 || true

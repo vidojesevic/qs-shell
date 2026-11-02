@@ -6,6 +6,7 @@ var vscode = "Gruvbox Material Dark"
 var ghostty = "ember"
 var helium = "#e6a44c"
 var nvim = "ember"
+var herdr = "gruvbox"
 var gtkAccent = "orange"
 
 var colors = {

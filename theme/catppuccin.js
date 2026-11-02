@@ -6,6 +6,7 @@ var vscode = "Catppuccin Mocha"
 var ghostty = "Catppuccin Mocha"
 var helium = "#cba6f7"
 var nvim = "catppuccin"
+var herdr = "catppuccin"
 var gtkAccent = "purple"
 
 var colors = {
