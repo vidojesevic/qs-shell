@@ -27,7 +27,8 @@ PanelWindow {
     readonly property int liveCount: 4
 
     property int current: 0
-    readonly property bool live: current < liveCount
+    // No Apply cycle: the live sections and the read-only System.
+    readonly property bool live: current < liveCount || sections[current] === "System"
 
     // Gap between a row divider and the control above or below it.
     readonly property int rowPadding: 12
@@ -74,7 +75,8 @@ PanelWindow {
         Appearance: appearancePage,
         Bar: barPage,
         Notifications: notificationsPage,
-        Screensaver: screensaverPage
+        Screensaver: screensaverPage,
+        System: systemPage
     })
 
     Component {
@@ -113,6 +115,14 @@ PanelWindow {
         id: notificationsPage
 
         NotificationsSection {
+            form: settings
+        }
+    }
+
+    Component {
+        id: systemPage
+
+        SystemSection {
             form: settings
         }
     }
@@ -378,7 +388,7 @@ PanelWindow {
         Rectangle {
             anchors.centerIn: parent
 
-            implicitWidth: 820
+            implicitWidth: 960
             implicitHeight: 560
 
             radius: 8
@@ -426,6 +436,8 @@ PanelWindow {
                         settings.step(-1)
                     } else if (key === Qt.Key_R && page.item?.rescan) {
                         page.item.rescan()
+                    } else if (key === Qt.Key_C && page.item?.copy) {
+                        page.item.copy()
                     } else if (key === Qt.Key_S) {
                         settings.apply(settings.current)
                     } else if (key === Qt.Key_Return || key === Qt.Key_Enter) {
@@ -706,8 +718,8 @@ PanelWindow {
                         }
                     }
 
-                    // Footer. Live sections act at once, so they show only
-                    // Close and their key hint.
+                    // Footer. Sections without an Apply cycle show their
+                    // hint and Close (System adds Copy report).
                     Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 52
@@ -739,6 +751,14 @@ PanelWindow {
                                     family: Config.bar.fontFamily
                                     pixelSize: Config.bar.fontSize - 2
                                 }
+                            }
+
+                            FooterButton {
+                                form: settings
+                                visible: !!page.item?.copy
+                                label: "Copy report"
+                                hint: "^C"
+                                onClicked: page.item.copy()
                             }
 
                             FooterButton {
