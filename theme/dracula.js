@@ -6,6 +6,7 @@ var vscode = "Dracula Theme"
 var ghostty = "Dracula"
 var helium = "#bd93f9"
 var nvim = "dracula"
+var herdr = "dracula"
 var gtkAccent = "purple"
 
 var colors = {

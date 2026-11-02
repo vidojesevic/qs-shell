@@ -5,6 +5,7 @@ var vscode = "One Dark Pro"
 var ghostty = "Atom One Dark"
 var helium = "#61afef"
 var nvim = "onedark"
+var herdr = "one-dark"
 var gtkAccent = "blue"
 
 var colors = {
