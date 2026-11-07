@@ -81,7 +81,7 @@ ColumnLayout {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            width: 240
+            width: 320
             height: 28
 
             radius: 6
@@ -154,7 +154,7 @@ ColumnLayout {
 
         Rectangle {
             anchors.right: parent.right
-            width: 240
+            width: 320
             height: 5 * 24 + 8
 
             radius: 6
