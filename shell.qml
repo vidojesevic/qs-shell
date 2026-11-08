@@ -4,6 +4,7 @@ import QtQuick
 
 import "notifications"
 import "perun-launcher"
+import "polkit"
 import "qsbar"
 import "recording"
 import "screensaver"
@@ -80,6 +81,8 @@ ShellRoot {
     }
 
     Launcher {}
+
+    PolkitPrompt {}
 
     RecordingHud {}
 

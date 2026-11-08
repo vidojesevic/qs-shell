@@ -21,6 +21,10 @@ Most widgets open a popup on click — not just a readout:
 
 Popup toasts plus a notification center with history, grouping and inline actions.
 
+## Settings
+
+`SUPER + SHIFT + H` (`qs ipc call settings toggle`) opens a modal: network, Bluetooth, appearance, bar widgets, notifications, screensaver, system facts, and the laptop's own hardware switches. The last one needs a page for your machine in `settings/hardware/local/` (gitignored). Without one, it shows a short brief; see [settings/hardware/README.md](settings/hardware/README.md) for a guide and a ThinkPad example.
+
 ## Install
 
 ```sh
