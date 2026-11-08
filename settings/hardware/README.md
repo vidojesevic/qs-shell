@@ -45,7 +45,8 @@ package is needed.
    ```
 
 6. **Reload** with `qs ipc call shell reload` and open the modal with
-   `SUPER + SHIFT + H`.
+   `SUPER + SHIFT + H`. Do this after every change to your page: the
+   shell loads it by path, so hot reload does not see it.
 
 ## Probe commands
 
@@ -310,6 +311,12 @@ esac
 - **CPU preference** (any Intel or AMD CPU): write
   `energy_performance_preference` in every `/sys/devices/system/cpu/cpu*/cpufreq/`.
   The kernel resets it at boot.
+- **NVIDIA GPU clock**: `nvidia-smi -lgc <min>,<max>` locks it, `-rgc`
+  resets it. At low load the card changes power state often, and games
+  stutter; a locked clock stops that. The driver has no read-back for the
+  lock, so the helper marks it with a file in `/run`. Both reset at boot.
+- **Gaming mode**: one switch that runs a few rows in one helper call, so
+  one password covers all of them.
 - **Camera or fingerprint reader off**: write `0` to `authorized` of the
   USB device (find it by `idVendor:idProduct`). It resets at boot, so the
   helper also writes a udev rule:
