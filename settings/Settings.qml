@@ -82,6 +82,7 @@ PanelWindow {
     readonly property var pages: ({
         Network: networkPage,
         Bluetooth: bluetoothPage,
+        Sound: soundPage,
         Appearance: appearancePage,
         Bar: barPage,
         Notifications: notificationsPage,
@@ -102,6 +103,14 @@ PanelWindow {
         id: bluetoothPage
 
         BluetoothSection {
+            form: settings
+        }
+    }
+
+    Component {
+        id: soundPage
+
+        SoundSection {
             form: settings
         }
     }
