@@ -6,7 +6,7 @@ const text = Theme.text
 const bar = {
     fontFamily: "JetBrainsMono Nerd Font",
     // fontFamily: "Ubuntu Mono",
-    fontSize: 16,
+    fontSize: 14,
     height: 30,
     padding: 2
 }
@@ -59,7 +59,7 @@ const notifications = {
  *              qs ipc call shell reload
  */
 const screensaver = {
-    text: "The Code Tribe",
+    text: "Dejane Sušče",
     fontSize: 96,
     animation: "dvd" // decrypt, typewriter, drop, scatter, wave, dvd
 }

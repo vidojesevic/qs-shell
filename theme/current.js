@@ -1,1 +1,1 @@
-catppuccin.js
+dracula.js

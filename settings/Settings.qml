@@ -11,6 +11,7 @@ import "../theme/dracula.js" as Dracula
 import "../theme/onedark.js" as Onedark
 import "../theme/tokyonight.js" as Tokyonight
 import "../theme/ember.js" as Ember
+import "hardware"
 
 // Settings modal. Toggle with: qs ipc call settings toggle
 // Keys: Ctrl+J / Ctrl+K (or Ctrl+Tab / Ctrl+Shift+Tab) change section,
@@ -22,13 +23,22 @@ PanelWindow {
     // config.js (persistent).
     readonly property var sections: [
         "Network", "Bluetooth", "Sound", "Displays",
-        "Appearance", "Bar", "Notifications", "Screensaver", "System"
+        "Appearance", "Bar", "Notifications", "Screensaver", "System", "Hardware"
     ]
     readonly property int liveCount: 4
 
     property int current: 0
-    // No Apply cycle: the live sections and the read-only System.
-    readonly property bool live: current < liveCount || sections[current] === "System"
+    // No Apply cycle: the live sections, the read-only System and Hardware,
+    // which writes to the firmware at once.
+    readonly property bool live: current < liveCount
+        || ["System", "Hardware"].includes(sections[current])
+
+    // Hardware shows this machine's own page from hardware/local/
+    // (gitignored), or a brief on how to write one. The page's file name is
+    // the sidebar label. See hardware/README.md.
+    property string machine: ""
+    property string localPage: ""
+    readonly property var labels: ({ Hardware: settings.localPage.replace(/\.qml$/, "") || "Under the Hood" })
 
     // Gap between a row divider and the control above or below it.
     readonly property int rowPadding: 12
@@ -76,7 +86,8 @@ PanelWindow {
         Bar: barPage,
         Notifications: notificationsPage,
         Screensaver: screensaverPage,
-        System: systemPage
+        System: systemPage,
+        Hardware: hardwarePage
     })
 
     Component {
@@ -131,6 +142,14 @@ PanelWindow {
         id: screensaverPage
 
         ScreensaverSection {
+            form: settings
+        }
+    }
+
+    Component {
+        id: hardwarePage
+
+        HardwareSection {
             form: settings
         }
     }
@@ -245,6 +264,22 @@ PanelWindow {
 
         stdout: StdioCollector {
             onStreamFinished: settings.currentTheme = text.trim().replace(/\.js$/, "")
+        }
+    }
+
+    // Line 1: the model name. Line 2: the first page in hardware/local/,
+    // if any. HardwareSection waits for machine, so set localPage first.
+    Process {
+        running: true
+        command: ["sh", "-c", "cat /sys/class/dmi/id/product_name; cd \"$1\" 2>/dev/null && ls *.qml 2>/dev/null | head -n 1",
+            "sh", Quickshell.shellDir + "/settings/hardware/local"]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const lines = text.split("\n")
+                settings.localPage = (lines[1] ?? "").trim()
+                settings.machine = lines[0].trim() || "unknown"
+            }
         }
     }
 
@@ -522,7 +557,7 @@ PanelWindow {
                                         anchors.left: parent.left
                                         anchors.leftMargin: 12
 
-                                        text: entry.modelData
+                                        text: settings.labels[entry.modelData] ?? entry.modelData
                                         color: entry.selected ? settings.text.active : settings.colors.foregroundAlt
 
                                         font {
@@ -597,7 +632,8 @@ PanelWindow {
                             anchors.left: parent.left
                             anchors.leftMargin: 24
 
-                            text: settings.sections[settings.current]
+                            text: settings.labels[settings.sections[settings.current]]
+                                ?? settings.sections[settings.current]
                             color: settings.text.normal
 
                             font {
