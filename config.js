@@ -59,7 +59,7 @@ const notifications = {
  *              qs ipc call shell reload
  */
 const screensaver = {
-    text: "DevOps",
+    text: "Dejane Sušče",
     fontSize: 96,
     animation: "dvd" // decrypt, typewriter, drop, scatter, wave, dvd
 }

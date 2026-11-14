@@ -55,6 +55,11 @@ done
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface accent-color "$gtk_accent"
 
+# Dolphin (Qt6/KDE). The scheme file is rewritten in place, so the name in
+# dolphinrc never changes. Dolphin reads it at startup; applies on next launch.
+"$dir/dolphin.py" "$dir/$name.js"
+kwriteconfig6 --file dolphinrc --group UiSettings --key ColorScheme Quickshell
+
 # Herdr: built-in theme name, and the [theme.custom] surfaces that already
 # exist in config.toml, from the palette. Every running session reloads it.
 herdr_config="$HOME/.config/herdr/config.toml"
